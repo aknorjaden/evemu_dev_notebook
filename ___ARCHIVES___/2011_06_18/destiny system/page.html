@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Destiny System</title>
+</head><body><span style="font-family: Nokia Sans">* HOLD - Capture eve live packets when undocking from a station in order to figure out what packets sent by server are still needed to fully implement it and thus prevent the client from stopping the ship upon undocking<br/>
+<br/>
+* DONE - In BeyonceBound::WarpToStuff(), inside the "item" IF clause, put distance += se-&gt;GetRadius() + call.client-&gt;GetRadius() under default inside the switch statement, this will fix warping to stations and any other celestial object that has an InventoryItem associated with its SystemEntity object<br/>
+* DONE - Multiply GetShip()-&gt;warpSpeedMultiplier() by ONE_AU_IN_METERS in the _InitWarp()<br/>
+* DONE - TEST - Create a common warp-to point for every Star, Planet, and Moon such that if ships warp to the same celestial body from vastly different vectors, they come out of warp in roughly the same position. &nbsp;Also, randomize the final point by +/- 1000m in each x,y,z axis. &nbsp;What happens for warping to stations? &nbsp;Is this needed for stations too?<br/>
+* DONE - With 2nd char sitting @ a gate, fly @ sublight 1000km away from gate, verify gate and 2nd char drop from overview, then fly all the way back to the gate to verify that 2nd char and the gate both reappear in view and overview. &nbsp;This tests whether or not the BubbleManager is properly moving your ship from your own bubble when you're 1000km away back into the gate's bubble when you fly back.<br/>
+ &nbsp;- FIXED - ISSUE: New bubble is created when ship flies out of static bubble at the gate, BUT when the ship flies back to the static bubble, the bubble is NOT "merged" with the static bubble. &nbsp;In more precise words, the ship in motion should have its bubble updated to no longer be in the new bubble but be placed back into the static bubble at the gate. - WHEN I USE ALIGN TO THE GATE TO FLY BACK, THEN RUN /SYNCLOC CMD, I FIND THE SHIP FARTHER AWAY, NOT CLOSER, BUT DOUBLE-CLICK IN SPACE TO SET DIRECTION DOES SHOW THE SHIP CLOSER AFTER ANOTHER /SYNCLOC, SO ALIGN TO IN THE SERVER HAS TO BE MESSED UP. &nbsp;FIX ALIGN TO THEN RETEST THE GATE FLY AWAY-RETURN.<br/>
+ &nbsp;- HOLD - BUBBLE RADIUS SET TO 500KM SO WE DONT NEED TO GROW BUBBLES - ISSUE: How do we need to handle "growing" bubbles and bubbles that seem to overlap such that a ship at one end of a dynamic bubble of a ship cannot be seen by other ships inside the static bubble that the ship at center of dynamic bubble has just started to overlap its bubble with the static one.<br/>
+* DONE - When checking to see if we left a bubble and we need to make a new one, don't put the center of the new bubble right on the ship but 99.6% of the bubble diameter out from the ship in the direction of travel, so this gives around 1000m of bubble overlap.<br/>
+ &nbsp;- DONE - First, add a GetDirection() to DynamicSystemEntity() that returns the DestinyManager::GetVelocity()<br/>
+ &nbsp;- DONE - Second, normalize the velocity vector and multiply it by the 99.2% of bubble radius then add that to ship position and voila! We have the point for the new bubble's center.<br/>
+ &nbsp;- DONE - Check to see if a bubble is deleted from the bubble manager when the last system entity is removed from that bubble.<br/>
+ &nbsp;- DONE - Set bubble radius to 500km for the forseeable future so we dont have to deal with Grid Manipulation<br/>
+* HOLD - On LOG-ON: take last ship position and calc a random position about 5AU away from that position, then move ship there before adding to bubble then warp in to original position<br/>
+* HOLD - On LOG-OFF: calc a random position about 5AU away from current position and do a warp to that point<br/>
+* HOLD - Check warp acceleration and decceleration formulas in EXCEL spreadsheet using two known 3D coordinates and evaluate the resulting calculations for each tick and the final position calculated by those formulas compared to the direct root-sum-squares calculation on the two 3D coordinates<br/>
+ <br/>
+*** TESTING TO BE DONE ***<br/>
+* Reduce bubble radius to 150km for testing, then set it to 250km according to Evelopedia<br/>
+* Test bubble behavior with new bubble creation set at 80% of diameter out from ship position in the direction of travel.<br/>
+<br/>
+<br/>
+*** PROBLEMS ***<br/>
+* Ensure that on each DestinyManager ProcessTic that the _Warp() function updates the bubble during acceleration to max warp speed, or more accurately, checks to see if warping ship must be removed from the bubble it just left.<br/>
+<br/>
+</span></body></html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Destiny System</title>
+</head><body><br/>
+*** DESTINY SYSTEM ***<br/>
+<br/>
+*** INTERESTING IDEAS ***<br/>
+<br/>
+<br/>
+*** PROBLEMS ***<br/>
+(2) * STATION DOCKING:<br/>
+ &nbsp; &nbsp;+ Station class should be the owner of calculation made to determine docking point and undock vector, so move this into a new set of functions callable through StationEntity from ServiceDB::GetStationInfo() - never call this as Station and StationEntity shoujld be queried for all info instead of the DB, and from ShipService.cpp's ShipBound::Handle_Undock() and from DestinyManager::AttemptDockOperation()<br/>
+ &nbsp; &nbsp;+ FIXED - ISSUE: I was able to dock my ship from 37km out from station, this should not be allowed outside of a 2500m distance from station.<br/>
+<br/>
+(3) * Make &nbsp;login and logoff more like eve live:<br/>
+* LOG-ON WARP-IN: take last ship position and calc a random position about 5AU away from that position, then move ship there before adding to bubble then warp in to original position<br/>
+* LOG-OFF WARP-OUT: calc a random position about 5AU away from current position and do a warp to that point, then put in provisions for the ship to stay in that position for a length of time, say for aggression counter<br/>
+ &nbsp; &nbsp;+ PROBLEM: When a client disconnects, the server deletes the Client object<br/>
+<br/>
+*** I think it is VERY bad that each ship's DestinyManager object is destroyed upon entering a station then created anew upon undocking. &nbsp;This causes server crashes if something in DestinyManager is not handled quite right. &nbsp;It is NOT robust.<br/>
+<br/>
+(4) * Limited Packet capture on EvE live Crucible:<br/>
+ &nbsp; &nbsp;* all space operations<br/>
+ &nbsp; &nbsp;* all actions on a non-charged weapon and a charged weapon<br/>
+ &nbsp; &nbsp;* opening character sheet<br/>
+ &nbsp; &nbsp;* using skill queue<br/>
+ &nbsp; &nbsp;* using chat channels and settings<br/>
+ &nbsp; &nbsp;* player to player trades<br/>
+ &nbsp; &nbsp;* <br/>
+<br/>
+<br/>
+* MOVING ACROSS BUBBLE BOUNDARIES / SPAWNING NEW BUBBLES / REMOVING EMPTY BUBBLES<br/>
+ &nbsp; &nbsp;+ ISSUE: Figure out how to give priority to static bubbles and bubbles at center of POS, Outposts, NPC stations, and stargates when searching for a bubble to enter or when creating a new one<br/>
+ &nbsp; &nbsp;+ ISSUE: When Orbiting Cruise or Impulse Drive features are engaged, be sure to call UpdateBubble() with the isPostWarp boolean set to TRUE and see if that helps ships get into static and station/gate/outpost/POS bubbles more easily<br/>
+ &nbsp; &nbsp;+ FIXED - ISSUE: when warping to a site containing dynamic system entities previously loaded into their own bubble, depending on the distance and time when warp was initiated relative to the BubbleManager Process tic timer expiry, the ship will be placed into a new bubble very close to the existing bubble containing the dynamic system entities, and therefore the ship will not see them nor will any ship already in the existing bubble see the arriving ship. &nbsp;Under different conditions the ship will be correctly placed into the existing bubble.<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- we could disable the 'wanderer' checking in BubbleManager::Process() and place UpdateBubble() calls in either all DestinyManager::_XXX() calls or in the _ProcessTic() method<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- we could check for post-warp state in the wanderer check and set Add()'s isPostWarp to true in that case<br/>
+ &nbsp; &nbsp;+ FIXED - ISSUE: when warping, a ton of new bubbles are created as a result of multiple calls to BubbleManager::UpdateBubble(). &nbsp;fix this by providing info to that function that the ship is in warp, then modify UpdateBubble() so as to not add ships in warp to a new bubble if it was determined that they have just left a bubble'<br/>
+ &nbsp; &nbsp;+ DONE - ISSUE: had to remove code that added bubbles at the center of every celestial object: star, planet, moon, asteroid belt, stargate, station, etc, but only stars, planets, and moons are excluded now. &nbsp;New bubbles will be created only when ships warp to these celestials.<br/>
+ &nbsp; &nbsp;+ DONE - NEW BUBBLE - created when ship flies X meters out of an existing bubble into space currently not tracked by an existing bubble. &nbsp;The new bubble's center should be created along the vector of travel the ship had at the time it was deemed to have left its current bubble. &nbsp;The new bubble's center should be placed along this vector at a distance from the ship equal to the default bubble radius minus the X meters of hysteresis so as to provide some overlap between adjacent bubbles.<br/>
+ &nbsp; &nbsp;+ DONE - SWITCH BUBBLES - when the ship flies X meters into an existing bubble, the bubble is NOT "merged" with the current bubble. &nbsp;In more precise words, the ship in motion should have its bubble updated to no longer be in the current bubble but be placed into the existing bubble being flown into. &nbsp;Delete empty bubbles AFTER the last SystemEntity object has been deleted or successfully entering another bubble.<br/>
+ &nbsp; &nbsp;+ DONE - REMOVE BUBBLES - when a ship is detected to have left its current bubble, check that bubble's current population of SystemEntity objects not including the ship that just left and if the remaining population is zero, delete this bubble from the BubbleManager's list of all bubbles in the solar system. &nbsp;ONLY delete empty bubbles AFTER the last SystemEntity object has been deleted or successfully moved into another bubble.<br/>
+ &nbsp; &nbsp;+ STILL BROKEN - ISSUE - WHEN I USE ALIGN TO THE GATE TO FLY BACK, THEN RUN /SYNCLOC CMD, I FIND THE SHIP FARTHER AWAY, NOT CLOSER, BUT DOUBLE-CLICK IN SPACE TO SET DIRECTION DOES SHOW THE SHIP CLOSER AFTER ANOTHER /SYNCLOC, SO ALIGN TO IN THE SERVER HAS TO BE MESSED UP. &nbsp;FIX ALIGN TO THEN RETEST THE GATE FLY AWAY-RETURN. &nbsp;APPROACH ALSO HAS THIS SAME PROBLEM.<br/>
+<br/>
+* GRID MANIPULATION - BUBBLE RADIUS SET TO 500KM SO WE DONT NEED TO GROW BUBBLES - ISSUE: How do we need to handle "growing" bubbles and bubbles that seem to overlap such that a ship at one end of a dynamic bubble of a ship cannot be seen by other ships inside the static bubble that the ship at center of dynamic bubble has just started to overlap its bubble with the static one.<br/>
+ &nbsp; &nbsp;+ one idea to create manuipulatable bubbles is to create a super class that contains a list of bubbles (the sphere kind) using SystemBubble class objects in the list. &nbsp;however, upon reflection, the BubbleManager already does this, so we need a new class just like bubblemanager but it contains a list of bubblemanager objects each of which comprises our notion of a 'bubble' in which entities can 'see' each other, spanning multiple sphere bubbles, then we need procedures and methods by which sphere bubbles are added and removed to the bubblemanager object's list as the mega-bubble is manipulated<br/>
+* UNDOCKING - Capture eve live packets when undocking from a station in order to figure out what packets sent by server are still needed to fully implement it and thus prevent the client from stopping the ship upon undocking<br/>
+<br/>
+<br/>
+*** TEMPORARILY FIXED OR POSTPONED PROBLEMS ***<br/>
+* HACK FIXED...for now - WARP-IN BUG - do not try to calc the position and velocity of the ship during warp until the warp duration counter is at the time when the ship needs to be added to the new bubble, at which point the predetermined bubble entry velocity and position are sent out in a Destiny Update packet to all of the clients in the destination bubble. &nbsp;what we need are the following: 1) the time in seconds the warp must last until entering the new bubble, 2) the bubble entry velocity needed to make the ship get to the destination based on the position upon entering thne bubble as it decelerates.<br/>
+ &nbsp;+ IMPORTANT: we should consider sending a Destiny Update at the point in time we expect thed ship to be near zero velocity upon exiting warp<br/>
+ &nbsp;+ OLD SOLUTION - Check warp acceleration and decceleration formulas in EXCEL spreadsheet using two known 3D coordinates and evaluate the resulting calculations for each tick and the final position calculated by those formulas compared to the direct root-sum-squares calculation on the two 3D coordinates<br/>
+<br/>
+<br/>
+*** FIXED PROBLEMS ***<br/>
+* FIXED - WARPING: Maximum warp speed is calculated correctly and used by the server's DestinyManager, however, no matter which ship is warping, the client is always using 3.0AU/s as the ship's maximum warp speed.<br/>
+ &nbsp; &nbsp;+ find out why 3.0AU/s is always sent to the client when warp is initiated, there has got to be some response packet sent by the server that contains this fixed 3.0AU/s number<br/>
+ &nbsp; &nbsp;+ compare evemu's interaction with incursion 1.6 client when initiating a warp to logs captured on incursion/incarna AND crucible 1.1.1<br/>
+<br/>
+* FIXED - IN-WARP BUBBLE UPDATING - Ensure that on each DestinyManager ProcessTic that the _Warp() function updates the bubble during acceleration to max warp speed, or more accurately, checks to see if warping ship must be removed from the bubble it just left.<br/>
+ &nbsp; &nbsp;+ nearly certain that a ship is removed from the bubble and NOT placed into any bubble once it has accelerated out past the current bubble's radius, then the ship in warp is not placed into any bubble until it crosses the destination's bubble's radius during deceleration<br/>
+<br/>
+* DONE - In BeyonceBound::WarpToStuff(), inside the "item" IF clause, put distance += se-&gt;GetRadius() + call.client-&gt;GetRadius() under default inside the switch statement, this will fix warping to stations and any other celestial object that has an InventoryItem associated with its SystemEntity object<br/>
+* DONE - Multiply GetShip()-&gt;warpSpeedMultiplier() by ONE_AU_IN_METERS in the _InitWarp()<br/>
+* DONE - TEST - Create a common warp-to point for every Star, Planet, and Moon such that if ships if warp to the same celestial body from vastly different vectors, they come out of warp in roughly the same position. &nbsp;Also, randomize the final point by +/- 1000m in each x,y,z axis. &nbsp;What happens for warping to stations? &nbsp;Is this needed for stations too?<br/>
+* DONE - With 2nd char sitting @ a gate, fly @ sublight 1000km away from gate, verify gate and 2nd char drop from overview, then fly all the way back to the gate to verify that 2nd char and the gate both reappear in view and overview. &nbsp;This tests whether or not the BubbleManager is properly moving your ship from your own bubble when you're 1000km away back into the gate's bubble when you fly back.<br/>
+* DONE - When checking to see if we left a bubble and we need to make a new one, don't put the center of the new bubble right on the ship but 99.6% of the bubble diameter out from the ship in the direction of travel, so this gives around 1000m of bubble overlap.<br/>
+ &nbsp;- DONE - First, add a GetDirection() to DynamicSystemEntity() that returns the DestinyManager::GetVelocity()<br/>
+ &nbsp;- DONE - Second, normalize the velocity vector and multiply it by the 99.2% of bubble radius then add that to ship position and voila! We have the point for the new bubble's center.<br/>
+ &nbsp;- DONE - Check to see if a bubble is deleted from the bubble manager when the last system entity is removed from that bubble.<br/>
+ &nbsp;- DONE - Set bubble radius to 500km for the forseeable future so we dont have to deal with Grid Manipulation<br/>
+ <br/>
+*** TESTING TO BE DONE ***<br/>
+* Reduce bubble radius to 150km for testing, then set it to 250km according to Evelopedia<br/>
+* Test bubble behavior with new bubble creation set at 80% of diameter out from ship position in the direction of travel.<br/>
+<br/>
+</body></html>

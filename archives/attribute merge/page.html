@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Attribute Merge</title>
+</head><body>*** PROBLEMS ***<br/>
+* GetAttribute() on a ship fails with AttrIsOnline, ie it's not present, so find out why that attribute is not present on ship object attribute maps.<br/>
+* DONE - Give skills slash command used to GIVE all skills for an item does not upgrade levels of existing skills to the level required by the item's prerequisite skills; only new skills are set to the levels required by the item.<br/>
+ &nbsp;- Only issue now is that while the server has the correct skill levels, somehow the client is NOT getting the update so it still shows the level the char had for existing skills before the GIVE button was clicked. &nbsp;How does the client get an update to change an existing skill?<br/>
+* Setting max warp speed via baseWarpSpeed * 3.0 * warpSpeedMultiplier does not change the max warp speed the client uses. &nbsp;It thinks every ship is 3.0au/s, WHY?<br/>
+* Using /setattr command does not inform the client of the change in attribute until a jump or station dock-undock. &nbsp;WHY?<br/>
+<br/>
+<br/>
+*** REVIEW &amp;TEST ***<br/>
+* Test the removal of attributes when trashing an object and also when using the /unspawn command<br/>
+* Test the /dogma command<br/>
+<span style="font-size: 10pt"><br/>
+</span><br/>
+*** TODO ***<br/>
+Post-Merge code improvements / fixes:<br/>
+* Put a check for save timer expiry for the mItem object in the DestinyManager::Process() function that invokes SaveItem() upon timer expiry ONLY for non-Client owners since Client objects have their own Process() function. &nbsp;Check to see if the DestinyManager object is owned by a Client object, and if not, then invoke SaveItem().<br/>
+* For DynamicSystemEntity derived classes setup save timer expiry and start the timer in the constructor<br/>
+* Saving attribute info for various object types:<br/>
+ - some objects do not change often so it does not make sense that they all need to have their info saved to the DB on the timer expiry, but rather these objects could have their info saved on certain events, then when they change to need the timer, it is then enaled and started<br/>
+ - So, this means that objects can be "active" and "inactive". When in the "active" state, the timer will run and expire then restart again. When in "inactive" state, the timer will not be used, but attribute and other info will be saved only on the occurrance of major events, such as logoff/disconnect, jump system, and possibly dock/undock<br/>
+ - Objects and their active/inactive states:<br/>
+ &nbsp; &nbsp;- Module: Active when fitted to a ship / Inactive in all other cases<br/>
+ &nbsp; &nbsp;- DONE - Ship: Active when occupied by a pilot / Inactive in all other cases<br/>
+ &nbsp; &nbsp;- DONE - Character: Active at all times while logged in<br/>
+ &nbsp; &nbsp;- Structures: Active when in space / Inactive in all other cases<br/>
+ &nbsp; &nbsp;- Deployables: Active when Online / Inactive in all other cases<br/>
+ &nbsp; &nbsp;- Outposts: Active at all times through all phases of construction and operation<br/>
+* When to store an item's attributes to the DB:<br/>
+ - NEED A DOWN-TIME SAVE-OFF FEATURE - EVEmu Control Panel<br/>
+ - ALL objects: server shutdown (see above)<br/>
+ - Character: logout/disconnect/dock/undock/jump system<br/>
+ - Ship: logout/disconnect/dock/undock/jump system<br/>
+ - Module: logout/disconnect/dock/undock/jump system<br/>
+ - Skill: logout/disconnect/dock/undock/jump system, end of training<br/>
+ - Drone: logout/disconnect/dock/undock/jump system/loss of control<br/>
+ - Container: anchored/unanchored, ? for jet cans<br/>
+ - Deployable: bubble ON/OFF, ?<br/>
+ - Structure: anchored/unanchored, onlined/offlined<br/>
+ - Destructable Celestial: ?<br/>
+* NOTE: DO NOT store attribute values that are modified by current character's skills - the way to ensure this is to never use SetAttribute() with vales that have already been modified by skill modifiers<br/>
+* Research what dynamic attributes each object needs in order to operate in the game<br/>
+ - object types: Ship, Character, Skill, Module, Container, Deployable, Structure, Station<br/>
+* ItemType class in ItemType.h still uses an old attribute class, TypeAttributeMgr found in the EVEAttributeMgr.h file. &nbsp;this should be replaced by the new AttributeMap class just as it was for the InventoryItem class.<br/>
+* Demote the "unable to find attribute" messages from Error to Warning<br/>
+<br/>
+<br/>
+*** COMPLETED ***<br/>
+* DONE - Analyze file diffs between attributre_rewrite and experimental branch<br/>
+* DONE - Find the place in the server code that gets the next available itemID for use in the entity table and provide way to clear it or go back thru beginning number 140000000 to find next available one up from that. - THERE ISNT ONE, A SIMPLE INSERT IS DONE AND MYSQL STORES THE AUTO_INCREMENT VALUE IN THE DB TABLE ITSELF, SO WE NEED NEW LOGIC THAT SEARCHES FROM 140000000 ON UP FOR THE NEXT AVAILABLE ITEMID<br/>
+* DONE - Find out how attributes are loaded into the attribute map, are they loaded from the dgmTypeAttributes table directly or where else? &nbsp;Are they loaded only when loading an item or also when spawning a new item? - INVENTORYITEM CALLS ATTRIBUTEMAP::LOAD() WHICH FIRST SEES IF ANYTHING IS IN ENTITY_ATTRIBUTES TABLE THEN LOADS THOSE, BUT IF NOTHING, LOADS COMPLETE LIST OF ATTRIBUTES FROM DGMTYPEATTRIBUTES TABLE WITH DEFAULTS<br/>
+* DONE - Just store and load ALL attributes of every object rather than distinguish between dynamic and static attributes for each object type and in some cases subtypes<br/>
+* FIXED - I discovered that the AttributeMap::Load() function as I wrote it to load attributes from the dgmtypeattributeinfo class is loading the wrong attributes for the skill objects. &nbsp;Somehow, the two critical skill attributes for SP trained and Level trained are not being created for new skill objects nor is the SetAttribute() function creating them when it is called in the Character Creation routine.<br/>
+* DONE, DID NOT HELP: DESTINY POINTER ALWAYS SEEMS TO BE NULL - Use the factory.GetUsingClient() function to get the client pointer to which to queue destiny updates for attribute changes. &nbsp;Will this work, as the destiny object might be NULL at this point in char creation or login?<br/>
+* DONE - Implement creation of all attributes for a newly spawned InventoryItem purely based on its typeID using the query on the dgmTypeAttributes table, or find out if this is being done for item types already but may be broken as that was being done under old attribute system<br/>
+* FIXED - Some problem with skill queue that when i add a skill to an empty queue and hit apply, the training time goes to Completion Imminent.<br/>
+* FIXED - Upon undocking i had the entity table bork problem where every entry's data was that of my ship's entry. &nbsp;I had to restore the table's contents. &nbsp;I might need to step throught the undocking code to find out what's going on. &nbsp;Could this be due somehow to the selective loading of objects based on ownership of the character connectedc to the client using the ItemFactory?<br/>
+* FIXED - Ship shieldCapacity seems to be zero, this is attributeID 263, i think. &nbsp;The attribute exists and is set to shield capacity, but the client still shows shield at 0hp.<br/>
+* DONE - The IsOnline attribute is missing for every item object, so add code to create this attribute when any item is spawned, ie: in the InventoryItem class.<br/>
+* DONE - Station objects seem to have 0 for radius attribute (), fix that so warp-to brings ships to right places near stations. &nbsp;Station objects seem to be missing these attribute types: 3, 162, 263, 264, 265, 266<br/>
+* DONE - It's a good bet that all other celestial and space objects that are destructible are going to need these as well.<br/>
+* DONE - Fix the "/dogma" slash command, work with Shane o get this working<br/>
+ - add this line to just before the "return NULL;" in the GMCommands.cpp Command_dogma()<br/>
+ - item-&gt;mAttributeMap.SetAttribute( attributeID, EvilNumber( attributeValue ), true );<br/>
+ - Also, 'attributeValue' needs to have one more 't' in the name because right now, it is incorrectly spelled 'atributeValue'<br/>
+* DONE - Check warping to stargates, sun, planets, moons, and bookmarks to make sure there are no new problems<br/>
+* DONE - Review what places that attributes are saved to DB.<br/>
+* DONE, ITS FINE - Review the Get Training Time function/service handler<br/>
+* DONE - Review/step-debug the Character::UpdateskillQueue() function to see how the AttrExpiryTime (1088) attribute is being calculated because it seems wrong, and the currently training skill has this value at zero, rather than some Win32TimeNow() value.<br/>
+* DONE - Fix warping to sun in BeyonceService::WarpToStuff()<br/>
+* DONE - Shorten the client-&gt;Destiny() = NULL message<br/>
+* DONE - Need to have a SaveAttributes() function for all object types, but for some objects they dont have their own InventoryItem-derived classes, so what do i do for those? - THERE IS NOW A CALL INSIDE InventoryItem::SaveItem() THAT SAVES ATTRIBUTES<br/>
+* DONE - Fill in values for some critical attributes such as hp, armorHp, and shieldCapacity<br/>
+* DONE - Test the merged changes to attribute rewrite 1053 and 1054. &nbsp;Do these fix any existing problems?<br/>
+ &nbsp;- FIXED - Saving attributes is only using DB "REPLACE INTO" which does not save at all. &nbsp;Perhaps modify the Save() function to use "INSERT INTO" whenever the "REPLACE INTO" fails. &nbsp;But, then, what is succeeding at saving the attributes to the DB because they ARE getting saved at some point, just not in the SaveItem() call?<br/>
+ &nbsp;- FIXED - There are also missing attributes that are trying to be set by some function when spawning or boarding a ship. &nbsp;Investigate those.<br/>
+* DONE - UPDATE ATTRIBUTE_REWRITE BRANCH WITH CAPTNOORD'S NEW CHANGES THEN MERGE THEM INTO YOUR EXPERIMENTAL MERGE CODE<br/>
+* DONE - Make sure that SaveAttributes() is called inside of InventoryItem::SaveItem(), THEN see where InventoryItem::SaveItem() is called and decide if there should be other places where it should be called<br/>
+* DONE - ALL NEW OBJECTS SPAWNED SHOULD HAVE ATTRIBUTES SAVED ALONG WITH ENTITY TABLE INFO WHEN THEY ARE FIRST CREATED<br/>
+* DONE - Figure out why a timer expiry of 60 yields a 10 second update. &nbsp;OK, now 120 yields 10 minutes?! &nbsp;W. T. F.<br/>
+* DONE - Make a Ship::SaveShip() function that saves 'entity' table info plus invokes SaveAttributes() and ModuleManager::SaveModules()<br/>
+* DONE - Consider creating a timer utility in the InventoryItem class that is started upon loading or spawning and is checked often indirectly somehow from the main.cpp super-loop that when it expires, all attributes for that object and its critical info from entity table are all saved back to the database where all that info is located - OK, WILL USE TIMER.H FOR THIS AND ONLY SHIPS BEING PILOTED, CHARACTERS, AND MODULES FITTED TO SHIPS WILL BE CHECKED FOR THIS TIMER EXPIRY; ALL OTHER OBJECTS WILL HAVE INFO SAVED ONLY ON SPECIAL EVENTS, SUCH AS LOGOUT ONLY FOR ANY OBJECT IN CARGO OR STATION<br/>
+* DONE - Ensure that each item, when spawned, saves its attributes to the DB.<br/>
+* DONE - Add the market_transactions table modification from Almamu's Wallet Transactions patch<br/>
+* FIXED BY CAPTNOORD - Spawning an Asteroid, Structure, Cargo Container, Deployable all have major problems and are different for each. &nbsp;Asteroid, Deployable, and Cargo Container all cause the client to have a massive destiny freeze while Structure just causes a client exception. &nbsp;All cause client exceptions that have something to do with destiny, so breakpoint in EncodeDestiny() functions trying to find why some values might be 1.#INF or divide by zero.<br/>
+*** DONE - MISSING ATTRIBUTES: spawning some ships, such as Damnation (typeID = 22474) is leaving some attributes out of the list, specifically warpSpeedMultiplier (attributeID = 600) and this results in warp speed = 0AU/s causing nothing to spawn correctly<br/>
+ &nbsp;*** First we set warpSpeedMultiplier to 1 for ships that do not have that attrib. &nbsp;Then, we need to fix the warpSpeed calculation in DestinyManager::_InitWarp() function so it calculates it as so: &nbsp;GetAttribute(AttrBaseWarpSpeed) * GetAttribute(AttrWarpSpeedMultiplier) * BASE_WARP_SPEED, where that last is a #define and is set to 3.0 AU/s; put it into the right file<br/>
+ &nbsp;- Use the 'invMetaTypes' table to get typeID of the parent ship of the typeID of your ship, then first load attributes of THAT typeID THEN load attributes of the actual typeID over top the first set. &nbsp;This is still insufficient for getting Damnation warpSpeedMultiplier because the Prophecy (parent typeID = 16233) also does not have attributeID 600 in the dgmTypeAttributes table<br/>
+ &nbsp;- All T1 and T2 battlecruisers seem to have the same warp speed = 3.0AU/s, so do we just make this the default warpSpeedMultiplier when a ship does not get loaded with one? &nbsp;Try to do a query of attributID 600 in dgmTypeAttributes table then feed that through invTypes to see if there are other ships without this<br/>
+* DONE - Ensure attributes for an object are removed from the 'entity_attributes' table whether the unspawn command is used, or an object is destroyed in some fashion, or just trashed<br/>
+* FIXED - PROBLEM IN LINUX BUILD: /src/common/database/dbcore.cpp - the use of the _strtoi64() and _strtoui64() functions are unrecognizable in linux, so find cross-platform functions to do this<br/>
+</span></body></html>

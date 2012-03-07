@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Module Manager</title>
+</head><body><br/>
+&gt;DEFINITION:<br/>
+* Operations on modules:<br/>
++ handle fitting modules of any kind into any slot, changing their flag appropriately, update ship dynamic attributes when any module is fitted<br/>
++ handle removal of any module from any slot, update ship dynamic attributes when any module is removed<br/>
++ handle fitting of rigs to the ship, update ship dynamic attributes when any rig is fitted<br/>
++ handle removal and subsequent destruction of rigs from the ship, update ship dynamic attributes when any rig is removed<br/>
++ handle fitting of T3 ship subsystems and modifying ship slot configuration<br/>
++ make design of module classes and module manager class generic enough that they can be used for managing POS towers and modules<br/>
+<br/>
+<br/>
+<br/>
+=======================================================<br/>
+ &nbsp; &nbsp;NEW MEMBERS TO EXISTING CLASSES and CHANGES TO EXISTING MEMBERS<br/>
+=======================================================<br/>
+<br/>
+InventoryBound<br/>
+public<br/>
+ &nbsp;+ Add() &nbsp;-- called when module or rig is added to ship and when charges are loaded<br/>
+ &nbsp; &nbsp; &nbsp;- notes on existing implementation:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;* Move all skill and ship attribute checks into module manager and module classes when fitting modules or loading charges<br/>
+ &nbsp;+ ReplaceCharges() &nbsp;-- called when charges are loaded into a module<br/>
+ &nbsp; &nbsp; &nbsp;- notes on existing implementation:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;* Move all skill and ship attribute checks into module manager and module classes when replacing charges<br/>
+ &nbsp;+ DestroyFitting() &nbsp;-- called when rig destroyed<br/>
+<br/>
+<br/>
+DogmaIMBound<br/>
+ &nbsp;+ Activate()<br/>
+ &nbsp;+ Deactivate()<br/>
+<br/>
+<br/>
+class AreaEffect<br/>
+<br/>
+<br/>
+class Client<br/>
+public:<br/>
+ &nbsp;+ void AreaEffect(AreaEffectAction pAreaEffectAction)<br/>
+protected:<br/>
+ &nbsp;- <br/>
+<br/>
+<br/>
+// These are additional public and protected member functions and attributes necessary for the module management redesign<br/>
+<br/>
+typedef std::map&lt;uint32 slotFlag, GenericModule * module&gt; GenercModuleBySlotMap<br/>
+typedef GenercModuleBySlotMap::iterator GenercModuleBySlotMapItr<br/>
+typedef GenercModuleBySlotMap::const_iterator GenercModuleBySlotMapConstItr<br/>
+<br/>
+class Ship<br/>
+ &nbsp;friend ModuleManager<br/>
+public<br/>
+ &nbsp;+ GenericModule * GetModule(moduleFlagID)<br/>
+ &nbsp; &nbsp; &nbsp;- Search all containers for module flag, return the ref, otherwise NULL<br/>
+ &nbsp;+ bool FitModule(uint32 moduleID)<br/>
+ &nbsp; &nbsp; &nbsp;- <br/>
+ &nbsp;+ bool UnfitModule(uint32 moduleID)<br/>
+ &nbsp; &nbsp; &nbsp;- <br/>
+ &nbsp;+ bool InstallRig(uint32 rigID)<br/>
+ &nbsp; &nbsp; &nbsp;- <br/>
+ &nbsp;+ bool DestroyRig(uint32 rigID)<br/>
+ &nbsp; &nbsp; &nbsp;- <br/>
+ &nbsp;+ bool InstallSubSystem(uint32 subSystemID)<br/>
+ &nbsp; &nbsp; &nbsp;- This should examine slot adjustments and change maximum allowed fitted slots for each rack<br/>
+ &nbsp;+ bool SwapSubSystem(uint32 existingSubSystemID, uint32 newSubsystemID)<br/>
+ &nbsp; &nbsp; &nbsp;- This should examine slot adjustments and change maximum allowed fitted slots for each rack<br/>
+ &nbsp;+ void TargetedAction(ModuleActionRef moduleAction)<br/>
+ &nbsp; &nbsp; &nbsp;- I DONT THINK THIS IS NEEDED AS IT EXISTS IN THE MODULE MANAGER<br/>
+----<br/>
+protected<br/>
+ &nbsp;- void _EmbedSkillsToShip()<br/>
+ &nbsp;- void _DeEmbedSkillsFromShip()<br/>
+ &nbsp;- GenericModuleBySlotMap m_LowSlotModules;<br/>
+ &nbsp;- GenercModuleBySlotMap m_MediumSlotModules;<br/>
+ &nbsp;- GenercModuleBySlotMap m_HighSlotModules;<br/>
+ &nbsp;- GenercModuleBySlotMap m_RigSlotModules; &nbsp;// no active modules<br/>
+ &nbsp;- GenercModuleBySlotMap m_SubsystemSlotModules; &nbsp;// no active modules<br/>
+<br/>
+<br/>
+// ModuleManager.h<br/>
+typedef std::map&lt;uint32, uint32&gt; UInt32UInt32Map<br/>
+typedef UInt32UInt32Map::iterator UInt32UInt32MapItr<br/>
+typedef UInt32UInt32Map::const_iterator UInt32UInt32MapConstItr<br/>
+<br/>
+class ModuleManager<br/>
+ &nbsp;friend ModuleManagerInterface<br/>
+public<br/>
+ &nbsp;+ InstallRig() &nbsp;// used only for rigs<br/>
+ &nbsp;+ DestroyRig() &nbsp;// used only for rigs<br/>
+ &nbsp;+ InstallSubSystem() &nbsp;// used only for subsystems<br/>
+ &nbsp;+ SwapSubSystem() &nbsp;// used only for subsystems<br/>
+ &nbsp;+ FitModule()<br/>
+ &nbsp;+ UnfitModule()<br/>
+ &nbsp;+ Online()<br/>
+ &nbsp;+ OnlineAll()<br/>
+ &nbsp;+ Offline()<br/>
+ &nbsp;+ OfflineAll()<br/>
+ &nbsp;+ Activate()<br/>
+ &nbsp;+ Deactivate()<br/>
+ &nbsp;+ DeactivateAllModules()<br/>
+ &nbsp;+ Overload()<br/>
+ &nbsp;+ DeOverload()<br/>
+ &nbsp;+ DamageModule()<br/>
+ &nbsp;+ RepairModule()<br/>
+ &nbsp;+ ReplaceCharges()<br/>
+ &nbsp;+ UnloadAllModules()<br/>
+ &nbsp;+ CharacterLeavingShip()<br/>
+ &nbsp;+ CharacterBoardingShip()<br/>
+ &nbsp;+ ShipWarping() &nbsp;// queries each module for "warp-safeness" and deactivates them if false<br/>
+ &nbsp;+ ShipJumping() &nbsp;// deactvates all active modules<br/>
+ &nbsp;+ void Process()<br/>
+ &nbsp;+ void TargetedAction(ModuleAction * pModuleAction)<br/>
+----<br/>
+protected<br/>
+ &nbsp;- void _ProcessModuleAction(ModuleAction * pModuleAction)<br/>
+ &nbsp;- bool _CloakSafeModuleCheck()<br/>
+ &nbsp;- Ship * m_pShip &nbsp;// we do not own this<br/>
+ &nbsp;- Client * m_pClient &nbsp;// we do not own this<br/>
+ &nbsp;- DestinyManager * m_pDestinyManager &nbsp;// we do not own this<br/>
+ &nbsp;- UInt32UInt32Map m_FittedByGroup &nbsp;// (groupID, numberOfFittedModulesInThisGroup<br/>
+ &nbsp;- UInt32UInt32Map m_OnlineByGroup &nbsp;// (groupID, numberOfOnlineModulesInGroup)<br/>
+ &nbsp;- UInt32UInt32Map m_ActiveByGroup &nbsp;// (groupID, numberOfActiveModulesInGroup)<br/>
+<br/>
+<br/>
+class ModuleManagerInterface<br/>
+public<br/>
+ &nbsp;+ ModuleManagerInterface(ModuleManager pModuleManager)<br/>
+ &nbsp;+ UInt32UInt32Map * GetFittedByGroupList()<br/>
+ &nbsp;+ UInt32UInt32Map * GetOnlineByGroupList()<br/>
+ &nbsp;+ UInt32UInt32Map * GetActiveByGroupList()<br/>
+----<br/>
+protected<br/>
+ &nbsp;- ModuleManager * m_pModuleManager &nbsp;// we do not own this<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+*** MODULE MANAGER REDESIGN ***<br/>
+* Separate out the single m_modules std::vector&lt;&gt; container to five std::map&lt;&gt; containers each indexed by the item flag value, because there is a unique flag value for every high, medium, low, rig, and subsystem slot. &nbsp;There should be one std::map&lt;&gt; container for each of these slot types: high power, medium power, low power, rig, and subsystem.<br/>
+* There should be separate functions to handle fitting/unfitting T3 subsystem modules because not only do they modify ship attributes but also modify the ship's slot configuration.<br/>
+<br/>
+<br/>
+*** TODO ***<br/>
+* Adapt Luck's new MM framework changes to the Incursion and Apocrypha client codebases<br/>
+* We need Get() type functions to return pointers to ShipModule objects for any fitted modules on a ship in order to manage combat, compute loot drops, etc. &nbsp;Right now, ModuleManager hides all access to the lists of ShipModule objects that it owns and maintains. &nbsp;They should allow access to each slot and return pointer NULL if slot is empty.<br/>
+* Make a ModuleManager::SaveModules() that saves all info for all modules to the DB as well as invokes SaveAttributes() for all modules fitted to ship including rigs<br/>
+* Study active effects and determine what new stuff we need to make active modules work.<br/>
+ &nbsp;- Pick a first module to make work, something simple, say armor repairer.<br/>
+<br/>
+<br/>
+*** PROBLEMS ***<br/>
+* TECH 3 Ship assembly/boarding requires all 5 subsystem types to be fitted to ship prior to boarding and should be done during assembly<br/>
+ &nbsp;- DONE - Upon assembly, we need to add subsystems to the ship's inventory using the flags that indicate which subsystem slot they are meant to be placed into.<br/>
+ &nbsp;- The ModuleManager needs to modify the ship's slot configuration when subsystems are added/removed to/from the ship. &nbsp;When a subsystem is removed, only modules in the highest slots of high, medium, and low slot sets are unfitted and placed in station items if the subsystem had added a slot or two to the sets. &nbsp;Rigs should not be touched. &nbsp;Standard slot modules that are removed should be placed into the players station items window.p<br/>
+<br/>
+<br/>
+*** DONE ***<br/>
+* Luck has nearly finished his MM framework redesign and some of us devs are going to get trained on the new codebase<br/>
+<br/>
+</body></html>

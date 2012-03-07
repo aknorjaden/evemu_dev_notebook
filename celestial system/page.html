@@ -1,0 +1,18 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Celestial System</title>
+</head><body>* DONE FOR STATIONS - change SystemManager celestial loading to use specific SystemEntity-derived classes instead of SimpleSystemEntity for everything, e.g. Use StationEntity instead for item category station<br/>
+* DONE - Make sure that ShipBound::Scoop handles more than just drones because you can scoop cargo containers (not jet-cans), mobile warp disruptors, and any unanchored structures from space into your ship's cargo bay<br/>
+* DONE - just for fun, make drones orbit your ship when you spawn them in space, but you gotta check to see how destiny handles the loss of a Follow or Orbit target when it warps off and leaves the bubble that contains the drones - DESTINY HANDLES THIS JUST FINE, TARGET IS NOTED AS LOST AND THE DRONES JUST STOP<br/>
+<br/>
+*** PROBLEMS ***<br/>
+* Selected Item window does not show any name or shortcut buttons when an item in the overview is selected. &nbsp;When an item is selected, the client generates an exception that caytechen traced back to the GetMultiLocationsEx call with an entityID of 0, which does not make sense, so we suspect that some earlier call response from the server is botched somehow.<br/>
+* Post-attribute Merge:<br/>
+ &nbsp;- Spawning stations crashes the server, specifically, typeID 1529, and the log says DBError station 140000xxx not found.<br/>
+ &nbsp;- Spawning planets no longer works, server pauses for a couple seconds then nothing happens<br/>
+* /spawnbelt slash command is doing wierd things spawning asteroids into different bubbles but all are same radius. &nbsp;R1078 &nbsp;Check radius and distance calculation, check coordinates used as the center of the belt.<br/>
+* /roid slash command causes the server to crash<br/>
+<br/>
+</span></body></html>

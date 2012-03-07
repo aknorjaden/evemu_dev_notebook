@@ -1,0 +1,611 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Module Manager</title>
+</head><body><span style="font-family: Nokia Sans">DEFINITION:<br/>
+* Operations on modules:<br/>
++ handle fitting modules of any kind into any slot, changing their flag appropriately, update ship dynamic attributes when any module is fitted<br/>
++ handle removal of any module from any slot, update ship dynamic attributes when any module is removed<br/>
++ handle fitting of rigs to the ship, update ship dynamic attributes when any rig is fitted<br/>
++ handle removal and subsequent destruction of rigs from the ship, update ship dynamic attributes when any rig is removed<br/>
++ handle fitting of T3 ship subsystems and modifying ship slot configuration<br/>
++ make design of module classes and module manager class generic enough that they can be used for managing POS towers and modules<br/>
+<br/>
+<br/>
+<br/>
+==============================================<br/>
+ &nbsp; &nbsp;USE CASES<br/>
+==============================================<br/>
+<br/>
+USE CASE: ?<br/>
+--------------------------------------------------<br/>
+CLIENT:<br/>
+- User &lt;action&gt;<br/>
+- client sends &lt;packet_type&gt; cmd packet<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+<br/>
+<br/>
+USE CASE: FIT MODULE TO SHIP:<br/>
+--------------------------------------------------<br/>
+CLIENT:<br/>
+- User drags a module from either cargo, station items, cargo container in space or not, or a corp maint. array at a POS within range of a ship maint. array to Fitting Window on specific slot<br/>
+- client sends InventoryBound Add cmd packet<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+ &nbsp; &nbsp;- add cmd packet received<br/>
+ &nbsp; &nbsp;* InventoryBound::Handle_Add()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Packet decoded for itemID, flag, action (fit, unfit, etc)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module being fitted to ship<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Call made to ModuleManager::FitModule() with itemID, flag, and action info<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* ModuleManager::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- <br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module is moved from existing inventory to ship inventory with flag set to target slot<br/>
+<br/>
+*** END USE CASE ***<br/>
+* Fit module<br/>
+ &nbsp;- insufficient skills, module NOT fitted<br/>
+ &nbsp;- insufficient slots available, or unsupported ship type, module NOT fitted<br/>
+ &nbsp;- insufficient power or cpu, module fitted, but NOT onlined<br/>
+<br/>
+<br/>
+USE CASE: UNFIT MODULE FROM SHIP:<br/>
+--------------------------------------------------<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: ONLINE MODULE:<br/>
+--------------------------------------------------<br/>
+*** END USE CASE ***<br/>
+* Online module<br/>
+ &nbsp;- insufficient power or cpu to online, module NOT onlined<br/>
+ &nbsp;- if in space, insufficient capacitor charge to online, module NOT onlined<br/>
+<br/>
+<br/>
+USE CASE: OFFLINE MODULE:<br/>
+--------------------------------------------------<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: ACTIVATE W/ OR W/O OVERLOAD MODULE:<br/>
+--------------------------------------------------<br/>
+CLIENT:<br/>
+- User clicks a deactivated Afterburner module in the client ui...<br/>
+- client sends Activate cmd packet<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+ &nbsp; &nbsp;- activate cmd packet received<br/>
+ &nbsp; &nbsp;* DogmaIMBound::Handle_Activate()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Packet is decoded for itemID and desired effect ("online")<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Call made to ModuleManager::Activate() with itemID and effect information<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* ModuleManager::Activate()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call is made to ItemFactory to obtain the InventoryItemRef for the supplied itemID<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to Ship::GetModule() with itemID to get GenericModule *<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- If NULL, return w/ error, else instantiate a new ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to (GenericModule *)-&gt;Activate() w/ effect params and ModuleAction *<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* AfterburnerModule::Activate()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check if ship is in warp, if so RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check if ship is cloaked and if covops cloak used, if not RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check activation cap. need, if cap. too low then RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check skills applicable to this module that affect its bonuses on the ship<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Apply those skill bonuses to enhance the module's bonuses<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Apply thoses updated bonuses to ModuleAction * object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Construct GFX packet object and pass pointer to ModuleAction * object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- If Overload enabled goto OVERLOADED state, else goto ACTIVE state<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Start effect timer<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- &lt;== RETURN TRUE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Invoke ModuleAction * object's query functions to determine what actions to take<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Take actions based on query results<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Mark module group as active, only for max group active number for this module, if exists<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- &lt;== RETURN bool result of AfterburnerModule::Activate() call<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- &lt;== RETURN bool result of ModuleManager::Activate() call<br/>
+*** END USE CASE ***<br/>
+* Activate OR Repeat-Activate module<br/>
+ &nbsp;- insufficient capacitor charge to meet activation capacitor need<br/>
+ &nbsp;- insufficient charges loaded to activate<br/>
+ &nbsp;- external effect preventing activation<br/>
+ &nbsp; &nbsp; &nbsp;+ cloak engaged<br/>
+ &nbsp; &nbsp; &nbsp;+ ship is in warp<br/>
+ &nbsp; &nbsp; &nbsp;+ ship is being warp scrammed such that warp strength is &lt; 1, microwarpdrives only<br/>
+ &nbsp; - insufficient fuel in cargo/fuel bay<br/>
+ &nbsp; - reactivation delay not yet expired<br/>
+* Overloading module<br/>
+ &nbsp;- have not trained thermodynamics skill<br/>
+<br/>
+<br/>
+USE CASE: DE-ACTIVATE MODULE:<br/>
+--------------------------------------------------<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: INSTALL RIG MODULE:<br/>
+--------------------------------------------------<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: DESTROY RIG MODULE:<br/>
+--------------------------------------------------<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: INSTALL SUBSYSTEM MODULE:<br/>
+--------------------------------------------------<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: SWAP SUBSYSTEM MODULE:<br/>
+--------------------------------------------------<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+*** MODULE USAGE FAILURE METHODS AND HOW TO REPORT THEM ***<br/>
+* Fit module<br/>
+ &nbsp;- insufficient skills, module NOT fitted<br/>
+ &nbsp;- insufficient slots available, or unsupported ship type, module NOT fitted<br/>
+ &nbsp;- insufficient power or cpu, module fitted, but NOT onlined<br/>
+* Online module<br/>
+ &nbsp;- insufficient power or cpu to online, module NOT onlined<br/>
+ &nbsp;- if in space, insufficient capacitor charge to online, module NOT onlined<br/>
+* Activate OR Repeat-Activate module<br/>
+ &nbsp;- insufficient capacitor charge to meet activation capacitor need<br/>
+ &nbsp;- insufficient charges loaded to activate<br/>
+ &nbsp;- external effect preventing activation<br/>
+ &nbsp; &nbsp; &nbsp;+ cloak engaged<br/>
+ &nbsp; &nbsp; &nbsp;+ ship is in warp<br/>
+ &nbsp; &nbsp; &nbsp;+ ship is being warp scrammed such that warp strength is &lt; 1, microwarpdrives only<br/>
+ &nbsp; - insufficient fuel in cargo/fuel bay<br/>
+ &nbsp; - reactivation delay not yet expired<br/>
+* Overloading module<br/>
+ &nbsp;- have not trained thermodynamics skill<br/>
+<br/>
+<br/>
+<br/>
+=======================================================<br/>
+ &nbsp; &nbsp;NEW MEMBERS TO EXISTING CLASSES and CHANGES TO EXISTING MEMBERS<br/>
+=======================================================<br/>
+<br/>
+InventoryBound<br/>
+public<br/>
+ &nbsp;+ Add() &nbsp;-- called when module or rig is added to ship and when charges are loaded<br/>
+ &nbsp; &nbsp; &nbsp;- notes on existing implementation:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;* Move all skill and ship attribute checks into module manager and module classes when fitting modules or loading charges<br/>
+ &nbsp;+ ReplaceCharges() &nbsp;-- called when charges are loaded into a module<br/>
+ &nbsp; &nbsp; &nbsp;- notes on existing implementation:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;* Move all skill and ship attribute checks into module manager and module classes when replacing charges<br/>
+ &nbsp;+ DestroyFitting() &nbsp;-- called when rig destroyed<br/>
+<br/>
+<br/>
+DogmaIMBound<br/>
+ &nbsp;+ Activate()<br/>
+ &nbsp;+ Deactivate()<br/>
+<br/>
+<br/>
+class AreaEffect<br/>
+<br/>
+<br/>
+class Client<br/>
+public:<br/>
+ &nbsp;+ void AreaEffect(AreaEffectAction pAreaEffectAction)<br/>
+protected:<br/>
+ &nbsp;- <br/>
+<br/>
+<br/>
+// These are additional public and protected member functions and attributes necessary for the module management redesign<br/>
+<br/>
+typedef std::map&lt;uint32 slotFlag, GenericModule * module&gt; GenercModuleBySlotMap<br/>
+typedef GenercModuleBySlotMap::iterator GenercModuleBySlotMapItr<br/>
+typedef GenercModuleBySlotMap::const_iterator GenercModuleBySlotMapConstItr<br/>
+<br/>
+class Ship<br/>
+ &nbsp;friend ModuleManager<br/>
+public<br/>
+ &nbsp;+ GenericModule * GetModule(moduleFlagID)<br/>
+ &nbsp; &nbsp; &nbsp;- Search all containers for module flag, return the ref, otherwise NULL<br/>
+ &nbsp;+ bool FitModule(uint32 moduleID)<br/>
+ &nbsp; &nbsp; &nbsp;- <br/>
+ &nbsp;+ bool UnfitModule(uint32 moduleID)<br/>
+ &nbsp; &nbsp; &nbsp;- <br/>
+ &nbsp;+ bool InstallRig(uint32 rigID)<br/>
+ &nbsp; &nbsp; &nbsp;- <br/>
+ &nbsp;+ bool DestroyRig(uint32 rigID)<br/>
+ &nbsp; &nbsp; &nbsp;- <br/>
+ &nbsp;+ bool InstallSubSystem(uint32 subSystemID)<br/>
+ &nbsp; &nbsp; &nbsp;- This should examine slot adjustments and change maximum allowed fitted slots for each rack<br/>
+ &nbsp;+ bool SwapSubSystem(uint32 existingSubSystemID, uint32 newSubsystemID)<br/>
+ &nbsp; &nbsp; &nbsp;- This should examine slot adjustments and change maximum allowed fitted slots for each rack<br/>
+ &nbsp;+ void TargetedAction(ModuleActionRef moduleAction)<br/>
+ &nbsp; &nbsp; &nbsp;- I DONT THINK THIS IS NEEDED AS IT EXISTS IN THE MODULE MANAGER<br/>
+----<br/>
+protected<br/>
+ &nbsp;- void _EmbedSkillsToShip()<br/>
+ &nbsp;- void _DeEmbedSkillsFromShip()<br/>
+ &nbsp;- GenericModuleBySlotMap m_LowSlotModules;<br/>
+ &nbsp;- GenercModuleBySlotMap m_MediumSlotModules;<br/>
+ &nbsp;- GenercModuleBySlotMap m_HighSlotModules;<br/>
+ &nbsp;- GenercModuleBySlotMap m_RigSlotModules; &nbsp;// no active modules<br/>
+ &nbsp;- GenercModuleBySlotMap m_SubsystemSlotModules; &nbsp;// no active modules<br/>
+<br/>
+<br/>
+// ModuleManager.h<br/>
+typedef std::map&lt;uint32, uint32&gt; UInt32UInt32Map<br/>
+typedef UInt32UInt32Map::iterator UInt32UInt32MapItr<br/>
+typedef UInt32UInt32Map::const_iterator UInt32UInt32MapConstItr<br/>
+<br/>
+class ModuleManager<br/>
+ &nbsp;friend ModuleManagerInterface<br/>
+public<br/>
+ &nbsp;+ InstallRig() &nbsp;// used only for rigs<br/>
+ &nbsp;+ DestroyRig() &nbsp;// used only for rigs<br/>
+ &nbsp;+ InstallSubSystem() &nbsp;// used only for subsystems<br/>
+ &nbsp;+ SwapSubSystem() &nbsp;// used only for subsystems<br/>
+ &nbsp;+ FitModule()<br/>
+ &nbsp;+ UnfitModule()<br/>
+ &nbsp;+ Online()<br/>
+ &nbsp;+ OnlineAll()<br/>
+ &nbsp;+ Offline()<br/>
+ &nbsp;+ OfflineAll()<br/>
+ &nbsp;+ Activate()<br/>
+ &nbsp;+ Deactivate()<br/>
+ &nbsp;+ DeactivateAllModules()<br/>
+ &nbsp;+ Overload()<br/>
+ &nbsp;+ DeOverload()<br/>
+ &nbsp;+ DamageModule()<br/>
+ &nbsp;+ RepairModule()<br/>
+ &nbsp;+ ReplaceCharges()<br/>
+ &nbsp;+ UnloadAllModules()<br/>
+ &nbsp;+ CharacterLeavingShip()<br/>
+ &nbsp;+ CharacterBoardingShip()<br/>
+ &nbsp;+ ShipWarping() &nbsp;// queries each module for "warp-safeness" and deactivates them if false<br/>
+ &nbsp;+ ShipJumping() &nbsp;// deactvates all active modules<br/>
+ &nbsp;+ void Process()<br/>
+ &nbsp;+ void TargetedAction(ModuleAction * pModuleAction)<br/>
+----<br/>
+protected<br/>
+ &nbsp;- void _ProcessModuleAction(ModuleAction * pModuleAction)<br/>
+ &nbsp;- bool _CloakSafeModuleCheck()<br/>
+ &nbsp;- Ship * m_pShip &nbsp;// we do not own this<br/>
+ &nbsp;- Client * m_pClient &nbsp;// we do not own this<br/>
+ &nbsp;- DestinyManager * m_pDestinyManager &nbsp;// we do not own this<br/>
+ &nbsp;- UInt32UInt32Map m_OnlineByGroup &nbsp;// (groupID, numberOfOnlineModulesInGroup)<br/>
+ &nbsp;- UInt32UInt32Map m_ActiveByGroup &nbsp;// (groupID, numberOfActiveModulesInGroup)<br/>
+<br/>
+<br/>
+class ModuleManagerInterface<br/>
+public<br/>
+ &nbsp;+ ModuleManagerInterface(ModuleManager pModuleManager)<br/>
+ &nbsp;+ UInt32UInt32Map * GetOnlineByGroupList()<br/>
+ &nbsp;+ UInt32UInt32Map * GetActiveByGroupList()<br/>
+----<br/>
+protected<br/>
+ &nbsp;- ModuleManager * m_pModuleManager &nbsp;// we do not own this<br/>
+<br/>
+<br/>
+==============================================<br/>
+ &nbsp; &nbsp;MODULE ACTION AND MODULE GROUP CLASS HEIRARCHY<br/>
+==============================================<br/>
+<br/>
+Modules: online, offline, fit, unfit, activate, deactivate, load charge, unload charge, overload, de-overload - some modules may not have all of these<br/>
+<br/>
+*** Final derived Module classes will have some subset of these functions:<br/>
+ &nbsp;+ bool Fit<br/>
+ &nbsp;+ bool Unfit<br/>
+ &nbsp;+ bool Online<br/>
+ &nbsp;+ bool Offline<br/>
+ &nbsp;+ bool Activate<br/>
+ &nbsp;+ bool Deactivate<br/>
+ &nbsp;+ bool LoadCharge<br/>
+ &nbsp;+ bool UnloadCharge<br/>
+ &nbsp;+ bool Overload<br/>
+ &nbsp;+ bool DeOverload<br/>
+ &nbsp;+ void ApplyDamage<br/>
+ &nbsp;+ void RepairDamage<br/>
+ &nbsp;+ void EmbedSkillsToShip<br/>
+ &nbsp;+ void DeEmbedSkillsFromShip<br/>
+<br/>
+<br/>
+** Valid States a module may &nbsp;move through ***<br/>
+typedef enum {<br/>
+ &nbsp; &nbsp;Unfitted,<br/>
+ &nbsp; &nbsp;Fitted,<br/>
+ &nbsp; &nbsp;Offline,<br/>
+ &nbsp; &nbsp;Online,<br/>
+ &nbsp; &nbsp;Active,<br/>
+ &nbsp; &nbsp;Overloaded,<br/>
+ &nbsp; &nbsp;Deactivating,<br/>
+ &nbsp; &nbsp;Deactivated,<br/>
+ &nbsp; &nbsp;Destroyed<br/>
+} ModuleState;<br/>
+<br/>
+<br/>
+*** Proposed class heirarchy outline ***<br/>
+GenericModule &nbsp;// this is THE base class, it will contain virtual abstract functions for the entire<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;// suite of functions that any module might have on its public interface in order<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;// for polymorphism to work<br/>
+ &nbsp;+ PassiveModule &nbsp;// all passive module group classes will derive from this<br/>
+ &nbsp; &nbsp;- ActiveModule<br/>
+ &nbsp; &nbsp; &nbsp;+ ChargedModule<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- TargetedChargedModule<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ ChargedTargetedLauncherModule &nbsp;// these do not launch destiny objects<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ TargetedModule &nbsp;// this class avoids multiple inheritance and just ignores the use of charges<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- ChargedLauncherModule &nbsp;// these launch destiny objects: bombs, dictor sheres, probes<br/>
+ &nbsp; &nbsp;- RigModule<br/>
+ &nbsp; &nbsp;- SubSystemModule<br/>
+ &nbsp; &nbsp; &nbsp;+ DefensiveSubSystemModule<br/>
+ &nbsp; &nbsp; &nbsp;+ ElectronicsSubSystemModule<br/>
+ &nbsp; &nbsp; &nbsp;+ EngineerignSubSystemModule<br/>
+ &nbsp; &nbsp; &nbsp;+ PropulsionSubSystemModule<br/>
+ &nbsp; &nbsp; &nbsp;+ OffensiveSubsystemModule<br/>
+<br/>
+<br/>
+CLASS ModuleAction - this class is a message container that can hold info about any type of action that a single module can take either on the ship on which it is fitted, or any external targetable object be it another ship, a drone, or any destructable structure or celestial object<br/>
+ &nbsp;* Classes that need a void TargetedAction() in order to process damage/repair/effects actions<br/>
+ &nbsp; &nbsp;- Drone<br/>
+ &nbsp; &nbsp;- NPC ship class<br/>
+ &nbsp; &nbsp;- Structure<br/>
+ &nbsp; &nbsp;- CargoContainer<br/>
+ &nbsp; &nbsp;- some types of celestial objects such as mission/complex structures, npc/player ship wrecks<br/>
+<br/>
+class ModuleAction<br/>
+ &nbsp;friend ModuleActionInterface<br/>
+public<br/>
+ &nbsp;+ bool IsThereAnAggressor()<br/>
+ &nbsp;+ SystemEntity * GetAggressor()<br/>
+ &nbsp;+ bool IsThereGfxPacket()<br/>
+ &nbsp;+ PyTuple * GetGfxPacket()<br/>
+ &nbsp;+ bool AreMyShipAttributesModified()<br/>
+ &nbsp;+ AttrMap *GetMyShipAttributeModifierMap()<br/>
+ &nbsp;+ bool IsThereOverloadDamage()<br/>
+ &nbsp;+ double GetOverloadSlotDamage(uint32 slotOffset)<br/>
+ &nbsp;+ bool DidShipCloak()<br/>
+ &nbsp;+ bool IsTargetDamaged()<br/>
+ &nbsp;+ void GetTargetDamage(double *emDmg, double *thermalDmg, double *kineticDmg, double *explosiveDmg)<br/>
+ &nbsp;+ bool AreTargetAttributesModified()<br/>
+ &nbsp;+ AttrMap *GetTargetAttributeModifierMap()<br/>
+ &nbsp;+ bool IsTargetRepaired()<br/>
+ &nbsp;+ void GetTargetRepairHitpoints(double *addShieldHP, double *addArmorHP, double *addStructureHP)<br/>
+ &nbsp;+ bool IsTargetEnergyLost()<br/>
+ &nbsp;+ double GetTargetEnergyLost()<br/>
+ &nbsp;+ bool IsTargetEnergyStolen()<br/>
+ &nbsp;+ double GetTargetEnergyStolen()<br/>
+ &nbsp;+ bool IsTargetEnergyRestored()<br/>
+ &nbsp;+ double GetTargetEnergyRestored()<br/>
+ &nbsp;+ bool AreThereWarfareLinkBonuses()<br/>
+ &nbsp;+ AttrMap * GetWarfareLinkBonusesMap()<br/>
+ &nbsp;+ bool AreThereMiningLinkBonuses()<br/>
+ &nbsp;+ AttrMap * GetMiningLinkBonusesMap()<br/>
+ &nbsp;+ bool IsCynoLit()<br/>
+ &nbsp;+ uint32 GetCynoType()<br/>
+ &nbsp;+ bool IsJumpPortalActiveated()<br/>
+ &nbsp;+ uint32 GetJumpPortalType()<br/>
+----<br/>
+protected<br/>
+ &nbsp;+ void _SetAggressor(SystemEntityRef aggressorEntity)<br/>
+ &nbsp;+ void _SetGfxPacket(PyTuple *pGfxPacket)<br/>
+ &nbsp;+ void _SetOverloadSlotDamage(uint32 slotOffset, double heatDamage)<br/>
+ &nbsp;+ void _SetShipCloaked()<br/>
+ &nbsp;+ void _SetTargetDamage(double emDmg, double, thermalDmg, double kineticDmg, double explosiveDmg)<br/>
+ &nbsp;+ void _SetTargetRepairHitpoints(double addShieldHP, double addArmorHP, double addStructureHP)<br/>
+ &nbsp;+ void _SetEnergyLost(double energyLost)<br/>
+ &nbsp;+ void _SetEnergyStolen(double energyStolen)<br/>
+ &nbsp;+ void _SetEnergyTransferred(double energyTransferred)<br/>
+ &nbsp;+ void _SetCynoTypeAndLightItUp(uint32 cynoType)<br/>
+ &nbsp;+ void _SetJumpPortalType(uint32 jumpPortalType)<br/>
+----<br/>
+private<br/>
+ &nbsp;+ PyTuple * m_pGfxPacket &nbsp;// we do not own this<br/>
+ &nbsp;+ AttrMap m_MyShipAttributeModifiers<br/>
+ &nbsp;+ bool m_IsOverloadDamage<br/>
+ &nbsp;+ std::vector&lt;uint32, double&gt; m_OverloadDamageBySlotOffset<br/>
+ &nbsp;+ bool m_DidShipCloak<br/>
+ &nbsp;+ bool m_IsTargetDamaged<br/>
+ &nbsp;+ double m_EmAttackDamage<br/>
+ &nbsp;+ double m_ThermalAttackDamage<br/>
+ &nbsp;+ double m_KineticAttackDamage<br/>
+ &nbsp;+ double m_ExplosiveAttackDamage<br/>
+ &nbsp;+ AttrMap m_TargetAttributeModifiers<br/>
+ &nbsp;+ bool m_IsTargetRepaired<br/>
+ &nbsp;+ double m_AddShieldHP<br/>
+ &nbsp;+ double m_AddArmorHP<br/>
+ &nbsp;+ double m_AddStructureHP<br/>
+ &nbsp;+ bool m_IsEnergyLost<br/>
+ &nbsp;+ double m_EnergyLost<br/>
+ &nbsp;+ bool m_IsEnergyStolen<br/>
+ &nbsp;+ double m_EnergyStolen<br/>
+ &nbsp;+ bool m_IsEnergyTransferred<br/>
+ &nbsp;+ double m_EnergyTransferred<br/>
+ &nbsp;+ bool m_AreThereWarfareLinkBonuses<br/>
+ &nbsp;+ AttrMap m_WarfareLinkBonuses<br/>
+ &nbsp;+ bool m_AreThereMiningLinkBonuses<br/>
+ &nbsp;+ AttrMap m_MiningLinkBonuses<br/>
+ &nbsp;+ bool m_IsCynoLit<br/>
+ &nbsp;+ uint32 m_CynoType<br/>
+ &nbsp;+ bool m_IsJumpPortalActive<br/>
+ &nbsp;+ uint32 m_JumpPortalType<br/>
+<br/>
+class ModuleActionInterface<br/>
+public<br/>
+ &nbsp;+ void AttachToObject(ModuleAction * pModuleAction)<br/>
+ &nbsp;+ void SetAggressor(SystemEntityRef aggressorEntity)<br/>
+ &nbsp;+ void SetGfxPacket(PyTuple *pGfxPacket)<br/>
+ &nbsp;+ void SetOverloadSlotDamage(uint32 slotOffset, double heatDamage)<br/>
+ &nbsp;+ void SetShipCloaked()<br/>
+ &nbsp;+ void SetTargetDamage(double emDmg, double, thermalDmg, double kineticDmg, double explosiveDmg)<br/>
+ &nbsp;+ void SetTargetRepairHitpoints(double addShieldHP, double addArmorHP, double addStructureHP)<br/>
+ &nbsp;+ void SetEnergyLost(double energyLost)<br/>
+ &nbsp;+ void SetEnergyStolen(double energyStolen)<br/>
+ &nbsp;+ void SetEnergyTransferred(double energyTransferred)<br/>
+ &nbsp;+ void SetCynoTypeAndLightItUp(uint32 cynoType)<br/>
+ &nbsp;+ void SetJumpPortalType(uint32 jumpPortalType)<br/>
+----<br/>
+private<br/>
+ &nbsp;+ ModuleAction * m_pModuleAction<br/>
+<br/>
+<br/>
+// this class will handle automatic loading of effects for an item, if any, and provide public access functions for getting a reference to an Effect object which gives access to in-memory fields from the dgmEffects table for the selected effect<br/>
+** ModuleEffect - container for all fields of data found in one row of the dgmEffects DB table<br/>
+** EffectsTable - one single memory object containing the complete list of effects found in the dgmEffects DB table, searchable by effectID returning a pointr to a ModuleEffect object<br/>
+** EffectsMap - container that has list of effects found for a specific item type, integrated into the item type container, not the inventory item class, and only contains a list of effectID values paired with the pointer to the corresponding ModuleEffect object. &nbsp;This save time that would have been spent running a std::map,&lt;&gt; find() call<br/>
+<br/>
+<br/>
+*** MODULE CLASSES: These classes are responsible for checking character skills to validate use of the module, applying applicable skills' bonuses to each modules' bonuses, checking existing fitted similar modules and applying bonus penalties, managing activation and effect timers, owning the loaded charges and consuming them on each cycle, and keeping track of the damage of the module to determine if it is destroyed.<br/>
+<br/>
+// This class <br/>
+GenericModule<br/>
+public<br/>
+ &nbsp;+ GenericModule(InventoryItemRef moduleItem)<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;+ virtual bool Fit() = 0<br/>
+ &nbsp;+ virtual bool Unfit() = 0<br/>
+ &nbsp;+ virtual bool Online() = 0<br/>
+ &nbsp;+ virtual bool Offline() = 0<br/>
+ &nbsp;+ virtual uint32 IsMaxActiveLimited() = 0 &nbsp;// returns max # of modules in group that can be active at the same time, if no limit, return 0<br/>
+ &nbsp;+ virtual bool Activate() = 0<br/>
+ &nbsp;+ virtual bool Deavtivate() = 0<br/>
+ &nbsp;+ virtual bool Overload() = 0<br/>
+ &nbsp;+ virtual bool DeOverload() = 0<br/>
+ &nbsp;+ virtual bool ApplyDamage() = 0<br/>
+ &nbsp;+ virtual bool RepairModule() = 0<br/>
+ &nbsp;+ virtual bool EmbedSkillsToShip() = 0 &nbsp;// called only when char enters a fitted ship<br/>
+ &nbsp;+ virtual bool DeEmbedSkillsFromShip() = 0 &nbsp;// called only when char leaves a fitted ship<br/>
+ &nbsp;+ virtual void WarpCheck()<br/>
+ &nbsp;+ virtual void JumpCheck()<br/>
+ &nbsp;+ virtual void Process() = 0<br/>
+ &nbsp;+ ModuleState GetState() = 0<br/>
+ &nbsp;+ InventoryItemRef GetItem() = 0<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+PassiveModule : public GenericModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+----<br/>
+protected<br/>
+ &nbsp;- bool _ValidatePowerGrid()<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;- bool _ValidateCPU()<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;- bool _ValidateSkills()<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;- bool _UpdateShipMass()<br/>
+ &nbsp;- ModuleState m_State<br/>
+ &nbsp;- InventoryItemRef m_pModuleItem &nbsp; // we do not own this<br/>
+ &nbsp;- ShipRef m_pMyShip &nbsp;// we do not own this<br/>
+ &nbsp;- ModuleManagerInterface m_ModuleManagerObj<br/>
+ &nbsp;- ModuleActionInterface m_ModuleActionObj<br/>
+<br/>
+<br/>
+ActiveModule : public PassiveModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- virtual void _RunCycle()<br/>
+ &nbsp;- virtual void _CalculateOverloadDamage()<br/>
+ &nbsp;- Timer m_ReActivationDelayTimer<br/>
+ &nbsp;- Timer m_CycleTimer<br/>
+<br/>
+<br/>
+ChargedModule : public ActiveModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- InventoryItemRef m_pLoadedCharge &nbsp;// we own this; it is consumed each cycle this module runs<br/>
+<br/>
+<br/>
+TargetedChargedModule : ChargedModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- SystemEntity * m_pTargetEntity &nbsp;// we do not own this<br/>
+<br/>
+<br/>
+// these do not launch destiny objects<br/>
+ChargedTargetedLauncherModule : public TargetedChargedModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+// this class avoids multiple inheritance and just ignores the use of charges<br/>
+TargetedModule : public TargetedChargedModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+// these launch destiny objects: bombs, dictor sheres, probes<br/>
+ChargedLauncherModule : public ChargedModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- SystemEntity * _CreateDestinyObject()<br/>
+ &nbsp;- SystemManager * m_pSystemManager &nbsp;// we do not own this; used to put probes, dictor spheres, bombs ito space<br/>
+<br/>
+<br/>
+RigModule : public PassiveModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+SubSystemModule : public PassiveModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+Clients HAVE Characters and Ships<br/>
+Ships HAVE Ship Modules<br/>
+most Ships HAVE High Slots, Medium Slots, Low Slots, Rig Slots<br/>
+some Ships HAVE Subsystem Slots<br/>
+Ship Modules HAVE Effects<br/>
+some Ship Modules HAVE Activation/Deactivation Timers<br/>
+some Ship Modules HAVE Charges that get consumed on each timer cycle<br/>
+Subsystem IS A Ship Module<br/>
+Subsystems AFFECT Slot configuration of a Ship<br/>
+Subsystems AFFECT Ship Attributes<br/>
+Ship Modules AFFECT Ship Attriibutes<br/>
+<br/>
+<br/>
+<br/>
+*** MODULE MANAGER REDESIGN ***<br/>
+* Separate out the single m_modules std::vector&lt;&gt; container to five std::map&lt;&gt; containers each indexed by the item flag value, because there is a unique flag value for every high, medium, low, rig, and subsystem slot. &nbsp;There should be one std::map&lt;&gt; container for each of these slot types: high power, medium power, low power, rig, and subsystem.<br/>
+* There should be separate functions to handle fitting/unfitting T3 subsystem modules because not only do they modify ship attributes but also modify the ship's slot configuration.<br/>
+<br/>
+<br/>
+*** PROBLEMS ***<br/>
+* MM basic functions updated and restored, however only max velocity passive modules DoEffects functions reenabled and there are problems<br/>
+ &nbsp;- Fitting a module from items window does NOT online it, as it remains dimmed<br/>
+ &nbsp;- Onlining does not change attributes as they are reported in the fitting window when inside a station. &nbsp;It has generated a client exception but im not sure it still does.<br/>
+* TECH 3 Ship assembly/boarding requires all 5 subsystem types to be fitted to ship prior to boarding and should be done during assembly<br/>
+ &nbsp;- DONE - Upon assembly, we need to add subsystems to the ship's inventory using the flags that indicate which subsystem slot they are meant to be placed into.<br/>
+ &nbsp;- The ModuleManager needs to modify the ship's slot configuration when subsystems are added/removed to/from the ship. &nbsp;When a subsystem is removed, only modules in the highest slots of high, medium, and low slot sets are unfitted and placed in station items if the subsystem had added a slot or two to the sets. &nbsp;Rigs should not be touched. &nbsp;Standard slot modules that are removed should be placed into the players station items window.<br/>
+<br/>
+<br/>
+*** TODO ***<br/>
+* Restore previous functionality post-attribute rewrite merge, all standard functions of ModuleManager and then the passive module functions<br/>
+* We need Get() type functions to return pointers to ShipModule objects for any fitted modules on a ship in order to manage combat, compute loot drops, etc. &nbsp;Right now, ModuleManager hides all access to the lists of ShipModule objects that it owns and maintains. &nbsp;They should allow access to each slot and return pointer NULL if slot is empty.<br/>
+* What other utility functions for modules do we need?<br/>
+* Make a ModuleManager::SaveModules() that saves all info for all modules to the DB as well as invokes SaveAttributes() for all modules fitted to ship including rigs<br/>
+* Study active effects and determine what new stuff we need to make active modules work.<br/>
+ &nbsp;- Pick a first module to make work, something simple, say armor repairer.<br/>
+<br/>
+</span></body></html>

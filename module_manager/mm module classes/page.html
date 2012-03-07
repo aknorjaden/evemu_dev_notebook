@@ -1,0 +1,325 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>MM Module Classes</title>
+</head><body><br/>
+=====================================================<br/>
+ &nbsp;MODULE CLASS DESIGN COMPOSITION AND HEIRARCHY<br/>
+=====================================================<br/>
+<br/>
+*** MODULE CLASSES: These classes are responsible for checking character skills to validate use of the module, applying applicable skills' bonuses to each modules' bonuses, checking existing fitted similar modules and applying bonus penalties, managing activation and effect timers, owning the loaded charges and consuming them on each cycle, and keeping track of the damage of the module to determine if it is destroyed.<br/>
+<br/>
+<br/>
+CLASS ModuleAction - this class is a message container that can hold info about any type of action that a single module can take either on the ship on which it is fitted, or any external targetable object be it another ship, a drone, or any destructable structure or celestial object<br/>
+ &nbsp;* Classes that need a void TargetedAction() in order to process damage/repair/effects actions<br/>
+ &nbsp; &nbsp;- Drone<br/>
+ &nbsp; &nbsp;- NPC ship class<br/>
+ &nbsp; &nbsp;- Structure<br/>
+ &nbsp; &nbsp;- CargoContainer<br/>
+ &nbsp; &nbsp;- some types of celestial objects such as mission/complex structures, npc/player ship wrecks<br/>
+<br/>
+class ModuleAction<br/>
+ &nbsp;friend ModuleActionInterface<br/>
+public<br/>
+ &nbsp;+ bool IsThereAnAggressor()<br/>
+ &nbsp;+ SystemEntity * GetAggressor()<br/>
+ &nbsp;+ bool IsThereGfxPacket()<br/>
+ &nbsp;+ PyTuple * GetGfxPacket()<br/>
+ &nbsp;+ bool AreMyShipAttributesModified()<br/>
+ &nbsp;+ AttrMap *GetMyShipAttributeModifierMap()<br/>
+ &nbsp;+ bool IsThereOverloadDamage()<br/>
+ &nbsp;+ double GetOverloadSlotDamage(uint32 slotOffset)<br/>
+ &nbsp;+ bool DidShipCloak()<br/>
+ &nbsp;+ bool IsTargetDamaged()<br/>
+ &nbsp;+ void GetTargetDamage(double *emDmg, double *thermalDmg, double *kineticDmg, double *explosiveDmg)<br/>
+ &nbsp;+ bool AreTargetAttributesModified()<br/>
+ &nbsp;+ AttrMap *GetTargetAttributeModifierMap()<br/>
+ &nbsp;+ bool IsTargetRepaired()<br/>
+ &nbsp;+ void GetTargetRepairHitpoints(double *addShieldHP, double *addArmorHP, double *addStructureHP)<br/>
+ &nbsp;+ bool IsTargetEnergyLost()<br/>
+ &nbsp;+ double GetTargetEnergyLost()<br/>
+ &nbsp;+ bool IsTargetEnergyStolen()<br/>
+ &nbsp;+ double GetTargetEnergyStolen()<br/>
+ &nbsp;+ bool IsTargetEnergyRestored()<br/>
+ &nbsp;+ double GetTargetEnergyRestored()<br/>
+ &nbsp;+ bool AreThereWarfareLinkBonuses()<br/>
+ &nbsp;+ AttrMap * GetWarfareLinkBonusesMap()<br/>
+ &nbsp;+ bool AreThereMiningLinkBonuses()<br/>
+ &nbsp;+ AttrMap * GetMiningLinkBonusesMap()<br/>
+ &nbsp;+ bool IsCynoLit()<br/>
+ &nbsp;+ uint32 GetCynoType()<br/>
+ &nbsp;+ bool IsJumpPortalActiveated()<br/>
+ &nbsp;+ uint32 GetJumpPortalType()<br/>
+----<br/>
+protected<br/>
+ &nbsp;+ void _SetAggressor(SystemEntityRef aggressorEntity)<br/>
+ &nbsp;+ void _SetGfxPacket(PyTuple *pGfxPacket)<br/>
+ &nbsp;+ void _SetOverloadSlotDamage(uint32 slotOffset, double heatDamage)<br/>
+ &nbsp;+ void _SetShipCloaked()<br/>
+ &nbsp;+ void _SetTargetDamage(double emDmg, double, thermalDmg, double kineticDmg, double explosiveDmg)<br/>
+ &nbsp;+ void _SetTargetRepairHitpoints(double addShieldHP, double addArmorHP, double addStructureHP)<br/>
+ &nbsp;+ void _SetEnergyLost(double energyLost)<br/>
+ &nbsp;+ void _SetEnergyStolen(double energyStolen)<br/>
+ &nbsp;+ void _SetEnergyTransferred(double energyTransferred)<br/>
+ &nbsp;+ void _SetCynoTypeAndLightItUp(uint32 cynoType)<br/>
+ &nbsp;+ void _SetJumpPortalType(uint32 jumpPortalType)<br/>
+----<br/>
+private<br/>
+ &nbsp;+ PyTuple * m_pGfxPacket &nbsp;// we do not own this<br/>
+ &nbsp;+ AttrMap m_MyShipAttributeModifiers<br/>
+ &nbsp;+ bool m_IsOverloadDamage<br/>
+ &nbsp;+ std::vector&lt;uint32, double&gt; m_OverloadDamageBySlotOffset<br/>
+ &nbsp;+ bool m_DidShipCloak<br/>
+ &nbsp;+ bool m_IsTargetDamaged<br/>
+ &nbsp;+ double m_EmAttackDamage<br/>
+ &nbsp;+ double m_ThermalAttackDamage<br/>
+ &nbsp;+ double m_KineticAttackDamage<br/>
+ &nbsp;+ double m_ExplosiveAttackDamage<br/>
+ &nbsp;+ AttrMap m_TargetAttributeModifiers<br/>
+ &nbsp;+ bool m_IsTargetRepaired<br/>
+ &nbsp;+ double m_AddShieldHP<br/>
+ &nbsp;+ double m_AddArmorHP<br/>
+ &nbsp;+ double m_AddStructureHP<br/>
+ &nbsp;+ bool m_IsEnergyLost<br/>
+ &nbsp;+ double m_EnergyLost<br/>
+ &nbsp;+ bool m_IsEnergyStolen<br/>
+ &nbsp;+ double m_EnergyStolen<br/>
+ &nbsp;+ bool m_IsEnergyTransferred<br/>
+ &nbsp;+ double m_EnergyTransferred<br/>
+ &nbsp;+ bool m_AreThereWarfareLinkBonuses<br/>
+ &nbsp;+ AttrMap m_WarfareLinkBonuses<br/>
+ &nbsp;+ bool m_AreThereMiningLinkBonuses<br/>
+ &nbsp;+ AttrMap m_MiningLinkBonuses<br/>
+ &nbsp;+ bool m_IsCynoLit<br/>
+ &nbsp;+ uint32 m_CynoType<br/>
+ &nbsp;+ bool m_IsJumpPortalActive<br/>
+ &nbsp;+ uint32 m_JumpPortalType<br/>
+<br/>
+class ModuleActionInterface<br/>
+public<br/>
+ &nbsp;+ void AttachToObject(ModuleAction * pModuleAction)<br/>
+ &nbsp;+ void SetAggressor(SystemEntityRef aggressorEntity)<br/>
+ &nbsp;+ void SetGfxPacket(PyTuple *pGfxPacket)<br/>
+ &nbsp;+ void SetOverloadSlotDamage(uint32 slotOffset, double heatDamage)<br/>
+ &nbsp;+ void SetShipCloaked()<br/>
+ &nbsp;+ void SetTargetDamage(double emDmg, double, thermalDmg, double kineticDmg, double explosiveDmg)<br/>
+ &nbsp;+ void SetTargetRepairHitpoints(double addShieldHP, double addArmorHP, double addStructureHP)<br/>
+ &nbsp;+ void SetEnergyLost(double energyLost)<br/>
+ &nbsp;+ void SetEnergyStolen(double energyStolen)<br/>
+ &nbsp;+ void SetEnergyTransferred(double energyTransferred)<br/>
+ &nbsp;+ void SetCynoTypeAndLightItUp(uint32 cynoType)<br/>
+ &nbsp;+ void SetJumpPortalType(uint32 jumpPortalType)<br/>
+----<br/>
+private<br/>
+ &nbsp;+ ModuleAction * m_pModuleAction<br/>
+<br/>
+<br/>
+// this class will handle automatic loading of effects for an item, if any, and provide public access functions for getting a reference to an Effect object which gives access to in-memory fields from the dgmEffects table for the selected effect<br/>
+** ModuleEffect - container for all fields of data found in one row of the dgmEffects DB table<br/>
+** EffectsTable - one single memory object containing the complete list of effects found in the dgmEffects DB table, searchable by effectID returning a pointr to a ModuleEffect object<br/>
+** EffectsMap - container that has list of effects found for a specific item type, integrated into the item type container, not the inventory item class, and only contains a list of effectID values paired with the pointer to the corresponding ModuleEffect object. &nbsp;This save time that would have been spent running a std::map,&lt;&gt; find() call<br/>
+<br/>
+<br/>
+Modules: online, offline, fit, unfit, activate, deactivate, load charge, unload charge, overload, de-overload - some modules may not have all of these<br/>
+<br/>
+*** Final derived Module classes will have some subset of these functions:<br/>
+ &nbsp;+ bool Fit<br/>
+ &nbsp;+ bool Unfit<br/>
+ &nbsp;+ bool Online<br/>
+ &nbsp;+ bool Offline<br/>
+ &nbsp;+ bool Activate<br/>
+ &nbsp;+ bool Deactivate<br/>
+ &nbsp;+ bool LoadCharge<br/>
+ &nbsp;+ bool UnloadCharge<br/>
+ &nbsp;+ bool Overload<br/>
+ &nbsp;+ bool DeOverload<br/>
+ &nbsp;+ void ApplyDamage<br/>
+ &nbsp;+ void RepairDamage<br/>
+ &nbsp;+ void EmbedSkillsToShip<br/>
+ &nbsp;+ void DeEmbedSkillsFromShip<br/>
+<br/>
+<br/>
+** Valid States a module may &nbsp;move through ***<br/>
+typedef enum {<br/>
+ &nbsp; &nbsp;Unfitted,<br/>
+ &nbsp; &nbsp;Fitted,<br/>
+ &nbsp; &nbsp;Offline,<br/>
+ &nbsp; &nbsp;Online,<br/>
+ &nbsp; &nbsp;Active,<br/>
+ &nbsp; &nbsp;Overloaded,<br/>
+ &nbsp; &nbsp;Deactivating,<br/>
+ &nbsp; &nbsp;Deactivated,<br/>
+ &nbsp; &nbsp;Destroyed<br/>
+} ModuleState;<br/>
+<br/>
+*** Proposed class heirarchy outline ***<br/>
+GenericModule &nbsp;// this is THE base class, it will contain virtual abstract functions for the entire<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;// suite of functions that any module might have on its public interface in<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;// order for polymorphism to work<br/>
+ &nbsp;+ PassiveModule &nbsp;// all passive module group classes will derive from this<br/>
+ &nbsp;+ ActiveModule<br/>
+ &nbsp;+ ChargedModule<br/>
+ &nbsp;+ TargetedChargedModule<br/>
+ &nbsp;+ ChargedTargetedLauncherModule &nbsp;// these do not launch destiny objects<br/>
+ &nbsp;+ TargetedModule<br/>
+ &nbsp;+ ChargedLauncherModule &nbsp;// these launch destiny objects: bombs, dictor sheres, probes<br/>
+ &nbsp;+ RigModule<br/>
+ &nbsp;+ SubSystemModule<br/>
+ &nbsp; &nbsp;- DefensiveSubSystemModule<br/>
+ &nbsp; &nbsp;- ElectronicsSubSystemModule<br/>
+ &nbsp; &nbsp;- EngineerignSubSystemModule<br/>
+ &nbsp; &nbsp;- PropulsionSubSystemModule<br/>
+ &nbsp; &nbsp;- OffensiveSubsystemModule<br/>
+<br/>
+Components<br/>
+ &nbsp;+ ActiveComponent<br/>
+ &nbsp;+ TargetingComponent<br/>
+ &nbsp;+ LauncherComponent<br/>
+ &nbsp;+ ChargeComponent<br/>
+<br/>
+<br/>
+// This class <br/>
+GenericModule<br/>
+public<br/>
+ &nbsp;+ GenericModule(InventoryItemRef moduleItem)<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;+ virtual bool Fit() = 0<br/>
+ &nbsp;+ virtual bool Unfit() = 0<br/>
+ &nbsp;+ virtual bool Online() = 0<br/>
+ &nbsp;+ virtual bool Offline() = 0<br/>
+ &nbsp;+ virtual uint32 IsMaxFitLimited() = 0 &nbsp; // returns max # of modules in group that can be fitted at the same time, if no limit, return 0<br/>
+ &nbsp;+ virtual uint32 IsMaxActiveLimited() = 0 &nbsp;// returns max # of modules in group that can be active at the same time, if no limit, return 0<br/>
+ &nbsp;+ virtual bool Activate() = 0<br/>
+ &nbsp;+ virtual bool Deavtivate() = 0<br/>
+ &nbsp;+ virtual bool Overload() = 0<br/>
+ &nbsp;+ virtual bool DeOverload() = 0<br/>
+ &nbsp;+ virtual bool ApplyDamage() = 0<br/>
+ &nbsp;+ virtual bool RepairModule() = 0<br/>
+ &nbsp;+ virtual bool EmbedSkillsToShip() = 0 &nbsp;// called only when char enters a fitted ship<br/>
+ &nbsp;+ virtual bool DeEmbedSkillsFromShip() = 0 &nbsp;// called only when char leaves a fitted ship<br/>
+ &nbsp;+ virtual void WarpCheck()<br/>
+ &nbsp;+ virtual void JumpCheck()<br/>
+ &nbsp;+ virtual void Process() = 0<br/>
+ &nbsp;+ ModuleState GetState() = 0<br/>
+ &nbsp;+ InventoryItemRef GetItem() = 0<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+PassiveModule : public GenericModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+----<br/>
+protected<br/>
+ &nbsp;- bool _ValidateSkills()<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;- bool _ValidatePowerGrid()<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;- bool _ValidateCPU()<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;- uint32 _IsMaxFitLimited()<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;- uint32 _IsMaxActiveLimited()<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;- bool _UpdateShipMass()<br/>
+ &nbsp; &nbsp; &nbsp;- needs an implementation<br/>
+ &nbsp;- ModuleState m_State<br/>
+ &nbsp;- InventoryItemRef m_pModuleItem &nbsp; // we do not own this<br/>
+ &nbsp;- ShipRef m_pMyShip &nbsp;// we do not own this<br/>
+ &nbsp;- ModuleManagerInterface m_ModuleManagerObj<br/>
+ &nbsp;- ModuleActionInterface m_ModuleActionObj<br/>
+<br/>
+<br/>
+ActiveModule : public PassiveModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- virtual void _RunCycle()<br/>
+ &nbsp;- virtual void _CalculateOverloadDamage()<br/>
+ &nbsp;- Timer m_ReActivationDelayTimer<br/>
+ &nbsp;- Timer m_CycleTimer<br/>
+<br/>
+<br/>
+ChargedModule : public ActiveModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- InventoryItemRef m_pLoadedCharge &nbsp;// we own this; it is consumed each cycle this module runs<br/>
+<br/>
+<br/>
+TargetedChargedModule : ChargedModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- SystemEntity * m_pTargetEntity &nbsp;// we do not own this<br/>
+<br/>
+<br/>
+// these do not launch destiny objects<br/>
+ChargedTargetedLauncherModule : public TargetedChargedModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+// this class avoids multiple inheritance and just ignores the use of charges<br/>
+TargetedModule : public TargetedChargedModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+// these launch destiny objects: bombs, dictor sheres, probes<br/>
+ChargedLauncherModule : public ChargedModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- SystemEntity * _CreateDestinyObject()<br/>
+ &nbsp;- SystemManager * m_pSystemManager &nbsp;// we do not own this; used to put probes, dictor spheres, bombs ito space<br/>
+<br/>
+<br/>
+RigModule : public PassiveModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+SubSystemModule : public PassiveModule<br/>
+// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
+public<br/>
+ &nbsp;- none<br/>
+----<br/>
+protected<br/>
+ &nbsp;- none<br/>
+<br/>
+<br/>
+Clients HAVE Characters and Ships<br/>
+Ships HAVE Ship Modules<br/>
+most Ships HAVE High Slots, Medium Slots, Low Slots, Rig Slots<br/>
+some Ships HAVE Subsystem Slots<br/>
+Ship Modules HAVE Effects<br/>
+some Ship Modules HAVE Activation/Deactivation Timers<br/>
+some Ship Modules HAVE Charges that get consumed on each timer cycle<br/>
+Subsystem IS A Ship Module<br/>
+Subsystems AFFECT Slot configuration of a Ship<br/>
+Subsystems AFFECT Ship Attributes<br/>
+Ship Modules AFFECT Ship Attriibutes<br/>
+<br/>
+</body></html>

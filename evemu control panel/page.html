@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>EVEmu Control Panel</title>
+</head><body>The EVEmu Control Panel is the application used by the server administrator to facilitate many features and maintenance functions of the game. &nbsp;The desired functions are listed below:<br/>
+<br/>
+* Send system wide messages to all clients informing them of important events such as imminent down-time<br/>
+* Set the default login message, if any, to inform users logging in of any important info<br/>
+* Initiate a down-time save-off of all loaded InventoryItem objects' attribute and other DB info so it gets written back to the DB. &nbsp;This will ensure a complete snapshot of the entire gameworld at that moment.<br/>
+* Get a complete list of all logged in players, their station or location, and their ship<br/>
+* <br/>
+<br/>
+*** API to eve-server ***<br/>
++ use separate TCP port to eve-server.exe than what clients use, 'sConfig.net.apiport' which needs to be added to that part of the server code<br/>
++ use similar xml formatting that eve live api uses for things like evemon, i think it uses http to serve up the xml and also to receive<br/>
++ we can modify source code of 3rd party eve online apps so they connect with evemu url set by a config file parameter, or, if source code is not available, as is the case with EFT, then we need to redirect api.eveonline.com to evemu's url somehow...ges to all clients informing them of important events such as imminent down-time<br/>
+* Set the default login message, if any, to inform users logging in of any important info<br/>
+* Initiate a down-time save-off of all loaded InventoryItem objects' attribute and other DB info so it gets written back to the DB. &nbsp;This will ensure a complete snapshot of the entire gameworld at that moment.<br/>
+* Get a complete list of all logged in players, their station or location, and their ship<br/>
+* <br/>
+<br/>
+*** API to eve-server ***'koppH:solar flare erruptions«<br/>
++ use separate TCP port to eve-server.exe than what clients use, 'sConfig.net.apiport' which needs to be added to that part of the server code<br/>
++ use similar xml formatting that eve live api uses for things like evemon, i think it uses http to serve u<br/>
+<br/>
+</body></html>

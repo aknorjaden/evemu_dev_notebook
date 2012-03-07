@@ -1,0 +1,275 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>New MM Development</title>
+</head><body><br/>
+*** \o/ &nbsp;Luck has re-designed and coded nearly the entire ModuleManager framework ***<br/>
+*** LET'S GET BUSY !!! ****<br/>
+<br/>
+<br/>
+* MODULEMANAGER:<br/>
+* nothing atm<br/>
+<br/>
+<br/>
+* MODULES: Review all actions of a Passive module as captured in eve live packet capture logs and note each packet type and outer structure and the Service Call to the server that was made<br/>
+ &nbsp; &nbsp;+ fit module (automatic online subsequent to fitting provided sufficient cpu &amp; power)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- there might be a response to the initial fitting that the server sends by which client decides to send the automatic online call or not to<br/>
+ &nbsp; &nbsp;+ unfit module<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- could be disallowed if destination capacity is insufficient<br/>
+ &nbsp; &nbsp;+ online module<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- could be disallowed due to insufficient power and/or cpu<br/>
+ &nbsp; &nbsp;+ offline module<br/>
+<br/>
+<br/>
+*** IMPORTANT FACTS ***<br/>
+* Client IS SystemEntity<br/>
+ &nbsp; &nbsp;+ SystemEntity contains ShipRef<br/>
+* Client HAS CharacterRef<br/>
+* Ship HAS ModuleManager<br/>
+ &nbsp; &nbsp;+ ModuleManager HAS ModuleContainer<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- ModuleContainer HAS arrays of GenericModule pointers<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ GenericModule pointer points to a derived class for specific module groupID<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ Module class HAS components for various functions of the module<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Modify Effect Target Attribute<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Active Module Management - keeps track of cycle timer and other timers<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Charge Module Management - keeps track of loaded charges and consuption/reloading<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- ?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- ?<br/>
+<br/>
+<br/>
+*** NOTES ON CONTINUING MODULE MANAGER AND SHIP COMBAT DEVELOPMENT ***<br/>
+* EXPERIMENT: run two clients in space, set a one-time halving of ship shields attribute with notify when ship is set to STOP in BeyonceBound and observe effect from own ship and other ship while targeting the ship whose shield dropped<br/>
+ &nbsp; &nbsp;- note everything that happens, we're kinda screwed if this does not work because that will<br/>
+ &nbsp; &nbsp; &nbsp; mean that there are one or more packets just missing in the whole series involving any situation<br/>
+ &nbsp; &nbsp; &nbsp; involving ANY Passive or Active Module since every action by a module has some effect on<br/>
+ &nbsp; &nbsp; &nbsp; either the fitted ship or a targeted object<br/>
+ &nbsp; &nbsp;+ my ship showed change to shields when i stopped it<br/>
+ &nbsp; &nbsp;+ other ship saw no change to shields when i stopped while it targetted me<br/>
+ &nbsp; &nbsp;*** CONCLUSION: Perhaps not as bad as i thought since damage and changes to ship and module attributes require OnDamageStateChange, OnGodmaShipEffect, OnModuleAttributeChange as well as these: NotEnoughEnergy, OnEffectHit, OnDamageMessage which all get put into DoDestinyUpdate packets<br/>
+* OBSERVATION: collisions are NOT even discovered nor handled in DestinyManager, so that is something we need to do<br/>
+<br/>
+<br/>
+*** TODO ***<br/>
+*** ISSUE: Turrets fitting to ship cause it to disappear on undock as well as server restart<br/>
+ &nbsp; &nbsp;- compare of evemu to sisi incarna logs reveal:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ live sends 'OnItemsChanged', evemu sends 'OnItemChanged', notice the plural on live<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ live sends 'OnItemsChanged' once for change of inventory, then a second for change in flag<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ NEXT - ShipGetInfo response by evemu server does not match eve live's 'util.KeyVal' structure<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ FIXED - client calls ItemGetInfo, live returns a 'util.KeyVal' packet, evemu returns a 'util.Row'<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;packet of a rather different format<br/>
+* QUICK: Future-proof use of ModuleManager for POS structures in groupIDs in categoryID = 23 and celestial groupIDs = 336, but there are a bunch of guns in entity categoryID with groupID = 383, 180, 99 that have no attributes, but have a couple effects (how does the server know which weapon effect and damage to apply? -- going to have to packet log high-sec sentry guns firing, and mission and anomaly/signature sites guns firing<br/>
+ &nbsp; &nbsp;+ for now, make areas in ModuleFactory.h for where they would have their own GenericModule-<br/>
+ &nbsp; &nbsp; &nbsp; derived class instantiated<br/>
+ &nbsp; &nbsp;+ for now, make areas in ModuleFactory.h for where DRONES would have their own<br/>
+ &nbsp; &nbsp; &nbsp; GenericModule-derived class instantiated<br/>
+* check ModuleManager class methidsx to see if they are setting module states as different methods are called: Fit, Unfit, Online, Offline, Activate, Deactivate, Reload, Load, Unload<br/>
+* implement new code to handle setting the target object for the effect<br/>
+* implement new code to handle applying the effect during the designated module state<br/>
+ &nbsp; &nbsp;+ when entering a module state of online, activate, or overload check for effects with that state<br/>
+ &nbsp; &nbsp; &nbsp; assigned to them then process those effects upon entering that state<br/>
+ &nbsp; &nbsp;+ effects marked with ONLINE are processed only once when module enters ONLINE<br/>
+ &nbsp; &nbsp;+ effects marked with ACTIVE_MAINTAIN are processed each cycle of a module in the<br/>
+ &nbsp; &nbsp; &nbsp; ACTIVATED state but are NOT applied in any cummulative way, just maintaining the target<br/>
+ &nbsp; &nbsp; &nbsp; attributes in their new values<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- the effect on target attributes will reverse once when the module finally transitions out of the<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ACTIVATED state<br/>
+ &nbsp; &nbsp;+ effects marked with ACTIVE_CONSUME are processed each cycle of a module in the<br/>
+ &nbsp; &nbsp; &nbsp; ACTIVATED state and are applied in a way such that the target attributes are affected in <br/>
+ &nbsp; &nbsp; &nbsp; a cummulative manner, such as capacitor charge depleting a set amount for each cycle<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- the effect will stop making cummulative changes to the target attributes when the module<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; transitions out of the ACTIVATED state<br/>
+ &nbsp; &nbsp;+ Allowed Module States:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- UNFITTED<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- OFFLINE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- ONLINE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- ACTIVATED<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DEACTIVATING<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- OVERLOADED<br/>
+ &nbsp; &nbsp;+ Allowed Charge States:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- UNLOADED<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- LOADING<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- LOADED<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- RELOADING<br/>
+ &nbsp; &nbsp;+ Allowed State Transitions:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module State transitions:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- state variable: m_Installation_State<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- UNFITTED =&gt; OFFLINE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- OFFLINE =&gt; UNFITTED<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- OFFLINE =&gt; ONLINE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- ONLINE =&gt; OFFLINE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- ONLINE =&gt; ACTIVATED<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-- if module requires a charge, it MUST already be in the LOADED state for Charge_State<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- ACTIVATED =&gt; DEACTIVATING<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- ONLINE =&gt; OVERLOADED<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- OVERLOADED =&gt; DEACTIVATING<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- DEACTIVATING =&gt; ONLINE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module Charge state transitions using (UNLOADED, LOADING, LOADED, RELOADING)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- state variable: m_Active_State<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- UNLOADED =&gt; LOADING<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- LOADING =&gt; LOADED<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- LOADED =&gt; RELOADING<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RELOADING =&gt; LOADED<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- LOADED =&gt; UNLOADED<br/>
+* make reverse calculation ZERO in the dgmEffectsInfo table and in the Effects code, automatically set the reverse calculation type when the reverse field is 0 for AUTO, otherwise, use the reverse calculation type loaded from the DB table dgmEffectsInfo<br/>
+* ModuleEffects: m_SelectedEffect and m_DefaultEffect need to both be set by some method, or do they really? &nbsp;why is default effect needed? &nbsp;we should apply all effects with the module state assigned that matches the current module's actual state (online, activated, overloaded). &nbsp;by this definition, the selected effect is not even needed<br/>
+ &nbsp; &nbsp;+ the effects class should have three simple arrays of effects: OnlineEffects, ActivateEffects, and<br/>
+ &nbsp; &nbsp; &nbsp; OverloadEffects, so that when the Module class' state method (Online, Activate, Overload) calls<br/>
+ &nbsp; &nbsp; &nbsp; the effect class' ProcessEffects() method passing in the module's state code it then only<br/>
+ &nbsp; &nbsp; &nbsp; processes those effects in the array matching the passed-in module state<br/>
+* work on implementing application of effects onto ship attributes when module is Onlined<br/>
+* work on implementing removal of effects from ship attributes when module is Offlined<br/>
+* how do we maintain the ship and each modules' base attributes unmodified by skill bonuses?<br/>
+* DESTINY: warping does not check for capacitor need per AU or w/e, and does not subtract<br/>
+ &nbsp; &nbsp; &nbsp; capacitor charge from capacitor when warp is initiated (enters phase during which STOP will<br/>
+ &nbsp; &nbsp; &nbsp; not work)<br/>
+ &nbsp; &nbsp;+ this needs to be a public call to the Ship class to inform warp is pending and pass in the<br/>
+ &nbsp; &nbsp; &nbsp; distance in AU, then determine how much cap charge to consume, apply that to ship's cap<br/>
+ &nbsp; &nbsp; &nbsp; charge, then return the fraction of the warp that can proceed (0.0 to 1.0) based on how much<br/>
+ &nbsp; &nbsp; &nbsp; cap charge was available<br/>
+ &nbsp; &nbsp;+ warpCapacitorNeed (153) has units of capacitor unit gigajoule per kg per AU<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- so, calculate gigajoules by product of mass, warp distance in AU, and this attribute,<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; and if there is insufficient capacitor charge on the ship, then empty it to zero and calculate<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; the fraction of available charge over the cap need for whole warp distance, then multiply<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; that fraction by the whole warp distance and calculate then partial warp sending that to the<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; client along with the error about insufficient cap charge for warp (packet log for this error)<br/>
+* EXPAND: Charges do have effects, so the Module Component that manages charges for the Active Modules that use charges will need an instance of the Effects container / manager class<br/>
+<br/>
+<br/>
+*** TEST &amp; DEVELOPMENT PLAN ***<br/>
+* INITIAL PEREPARATION: Procure one module from each group and attempt each module action with each one as you progress through this Plan.<br/>
+ &nbsp; &nbsp;+ Create a page on wiki for Incursion Module Support containing a table with each module group on its own row and each module action on the columns, then fill in the status of the action being supported for each module and update as work progresses<br/>
+* DOCUMENT brief descriptions of the program flow for all actions and methods and flow paths in the code<br/>
+* CLASS SUPPORT: review entire list of module groups and determine if they all have classes in the new MM framework for them. If any do not then make those classes and don't worry about including all components via composition right now, that can come later as actions begin to be implemented<br/>
+* FITTING: Ensure all modules can be fitted<br/>
+ &nbsp; &nbsp;0. CODE WALKTHROUGH: breakpoint in InventoryBound::Handle_Add() and step through code when a module is fitted to a slot on the ship. &nbsp;This will familiarize you with the code that handles fitting. &nbsp;Note ANY areas for improvement or bug fixes.<br/>
+ &nbsp; &nbsp;1. first step is to allow all modules to be fitted to their bank, no skill or max checks at all; the only check should be if the slot is occupied checked using the module's flag, encodes slot # &amp; bank<br/>
+ &nbsp; &nbsp;2. implement skill prerequisites check to verify fitting may proceed<br/>
+ &nbsp; &nbsp;3. implement checks on max # of modules of given group that can be fitted<br/>
+* Verify that Onlining is automatically invoked by the client when fitting sends success packet or w/e &nbsp; &nbsp;1. first step is to allow all modules to be fitted to their bank, no skill or max checks at all; the only check should be if the slot is occupied checked using the module's flag, encodes slot # &amp; bank<br/>
+* UNFITTING: Ensure modules can be unfitted to either ship cargo or station items<br/>
+ &nbsp; &nbsp;+ ensure that cargo available space of destination inventory is being checked and enforced via rejection of unfitting of module and an error message to the client<br/>
+* ONLINING / OFFLINING: Ensure modules can be placed online and taken offline<br/>
+ &nbsp; &nbsp;1. implement checks and changes to CPU and Power when modules are onlined/offlined<br/>
+ &nbsp; &nbsp;2. implement enforcement of max # of same-group modules that can be onlined<br/>
+ &nbsp; &nbsp;3. implement module online effects one by one (this can be done in parallel with further work)<br/>
+ &nbsp; &nbsp;4. implement checks on max # of modules of given group that can be onlined<br/>
+ &nbsp; &nbsp;5. imprrove upon eve live and do not apply capacitor penalty when onlining modules when the ship is in space<br/>
+* SKILLS IMPACT:<br/>
+ &nbsp; &nbsp;1. Implement bonus modifiers based on skill levels, but how to do this and still retain the base ship attributes before skill bonuses? &nbsp;Likewise for module attributes with and without skill bonus modifiers?<br/>
+* ACTIVATE<br/>
+ &nbsp; &nbsp;1. Implement basics to just cause client to show module as active and cycling, if applicable<br/>
+ &nbsp; &nbsp;2. Implement cycle timer in Module component using actual attributes<br/>
+ &nbsp; &nbsp;?. implement skill modifiers to:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ cycle time<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ reactivation delay<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ capacitor need<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ reactivation delay not yet expired<br/>
+* DEACTIVATION:<br/>
+ &nbsp; &nbsp;1. Implement basics to just show module as deactivating then deactivate, no checks, just do it<br/>
+ &nbsp; &nbsp;2. implement checks for expiration of cycle timer and queue deactivation for when cycle timer expires, respond with accepting deactivate request and put module into 'deactivating' state<br/>
+*** ADVANCED ***<br/>
+* MULTI-FIT PENALTIES:<br/>
+ &nbsp; &nbsp;- TBD<br/>
+* OVERLOADING:<br/>
+ &nbsp; &nbsp;- TBD<br/>
+<br/>
+<br/>
+* TEST AND MARK PROBLEMS WITH:<br/>
+(breakpoint in handler and step through code to learn/verify operations)<br/>
+ &nbsp; &nbsp;- fitting a module<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ nearly all modules are NOT supported in ModuleFactory, results in NULL pointer deref.<br/>
+ &nbsp; &nbsp;- unfitting a module<br/>
+ &nbsp; &nbsp;- onlining a module<br/>
+ &nbsp; &nbsp;- offlining a module<br/>
+ &nbsp; &nbsp;- loading charges into a module<br/>
+ &nbsp; &nbsp;- unloading charges from a module<br/>
+ &nbsp; &nbsp;- repairing a damages module<br/>
+ &nbsp; &nbsp;------------------------------------<br/>
+ &nbsp; &nbsp;+++ Handlers:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ InventoryBound::Add()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ DogmaIMBound::Activate()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ DogmaIMBound::Deactivate()<br/>
+<br/>
+* move ModuleContainer into its own file set .h/.cpp<br/>
+<br/>
+* build the other Component classes needed for Moodule classes<br/>
+ &nbsp; &nbsp;- ModuleActiveComponent<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Active Process loop - finish this<br/>
+ &nbsp; &nbsp;- ModuleGraphicsComponent<br/>
+ &nbsp; &nbsp;- ModuleTargetingComponent<br/>
+ &nbsp; &nbsp;- ModuleLauncherComponent<br/>
+<br/>
+* Is the framework in place for loading all fitted modules and their onlined/offlined state from the DB tables? &nbsp;What needs to be done to make that work?<br/>
+<br/>
+* change stacking penalty tracking container to track groupID, not typeID<br/>
+<br/>
+<br/>
+*** DONE ***<br/>
+* FIXED - 5 attributes cannot be found when loading ships from DB that were previously spawned because Ship::Ship() constructor does 'new ModuleManager(this)', which then inside ModuleManager's constructor does 'new ModuleContainer where the attributes are loaded for an existing ship, not where a ship is created/spawned in-station and in space, verify these 5 errors are gone<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ observe on char login to game that no ship being loaded from DB shows these errors<br/>
+* DONE - does any part of the flow for fitting a module check to see if there is already a module fitted to the slot the current module is trying to go into? &nbsp;check for a module in inventory with a matching flag value, if so, refuse to fit the module<br/>
+ &nbsp; &nbsp;+ DONE - error packet isolated and filled into UserError() Py class<br/>
+ &nbsp; &nbsp;+ DONE - need ModuleManager call IsSlotOccupied() to be made and to query ModuleContainer<br/>
+ &nbsp; &nbsp;+ DONE - need to test implementation<br/>
+* NON-ISSUE - EVE LIVE BEHAVES THE SAME WAY: With the new max fitted checks, the server will not allow a module across slots if the max of that module type is fitted already. &nbsp;Check eve live to see if you can do that.<br/>
+ &nbsp; &nbsp;+ if a check of that item's ID on the slot bank that it belongs to reveals that module is already<br/>
+ &nbsp; &nbsp; &nbsp; fitted to thisw ship, then bypass the check error and be sure to do a MOVE of said ;odule<br/>
+ &nbsp; &nbsp;+ NEW: ModuleContainer::MoveModule(itemID, newFlag) - this is called in ModuleManager when<br/>
+ &nbsp; &nbsp; &nbsp; a module is being fitted to a slot but this module is already fitted to a different slot<br/>
+* DONE - EXPAND: Make ActiveModules class not crash server when ModuleFactory instantiates it<br/>
+* DONE - need a couple variables maintained by ModuleManager, perhaps in ModuleContainer? that keep track of the number of high power slot modules that are turrets fitted to the ship and the number of missile launchers fitted to the ship<br/>
+ &nbsp; &nbsp;+ NEW: GenericModule::isLauncherFitted() and check for presence of effectID 40 on the module<br/>
+ &nbsp; &nbsp;+ NEW: GenericModule::isTurretFitted() and check for presence of effectID 42 on the module<br/>
+ &nbsp; &nbsp;+ NEW: GenericModule::isMaxGroupFitLimited() and check for presence of attributeID 1544<br/>
+ &nbsp; &nbsp; &nbsp; on the module<br/>
+ &nbsp; + NEW: Ship::GetMaxTurretHardpoints()<br/>
+ &nbsp; &nbsp;+ ModuleContainer queries the module class, once created, for either kind of weapon type,<br/>
+ &nbsp; &nbsp;+ NEW: Ship::GetMaxLauncherHardpoints()<br/>
+ &nbsp; &nbsp; &nbsp; then checks its own current count of that type already fitted against the maximum allowed<br/>
+ &nbsp; &nbsp; &nbsp; on the current ship, then either proceeds with fitting or thows UserError class exception<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ packet log eve live to discorver this user errors:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- insufficient turret hardpoints<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- insufficient launcher hardpoints<br/>
+* DONE - do we have GetModule() functions by flag and itemID in the ModuleManager?<br/>
+* DONE - Get rid of all _unnecessary_ private member functions with '_' prefix in ModuleManager and ModuleContainer classes, rolling them into fewer larger functions<br/>
+* DONE - INVESTIGATE: Do Charges and Drones also have effects?<br/>
+ &nbsp; &nbsp;+ Charges have effects<br/>
+ &nbsp; &nbsp;+ Drones have effects, though mosly just one<br/>
+* DONE - Make ABSOLUTELY sure that when a module is removed from one of the arrays that ModuleContainer manages, that it returns the pointer value at that element to NULL<br/>
+* DONE - need to populate dgmEffectsInfo table with effects for 1600mm tungsten plates, then ensure it is properly loaded into the effects classes<br/>
+* DONE - make call to Character::SaveSkillQueue() inside Character::SaveCharacter()<br/>
+ &nbsp; &nbsp;- adjust Client destructor accordingly, and make call to the new Client::SaveAllToDatabase()<br/>
+* DONE - NEEDS TESTING - Module attributes are NOT being saved to the database at all<br/>
+ &nbsp; &nbsp;- Client::SaveAllToDatabase()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ GetChar()-&gt;SaveCharacter()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ GetShip()-&gt;SaveShip()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- moduleManager-&gt;SaveModules()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ moduleContainer()-&gt;SaveModules()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- loop through each bank of module slot arrays calling GenericModule::SaveModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; on each Module object<br/>
+ &nbsp; &nbsp;* find out when a save of attributes and inventory of ship and modules should take place<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE - log off / disconnect<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE - docking into station / outpost<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- undocking from station / outpost (is this a good idea? &nbsp;put call in, it can always be removed)<br/>
+ &nbsp; &nbsp;* find out what method(s) to call to save module attributes (loop through module container arrays), ship inventory and ship attributes and where they should be called<br/>
+* DONE - remove extra 'SubEffect::' from SubEffect class definition (5 places) in ModuleManager.h and then close issue on gihub once source builds fine<br/>
+* DONE - MODULEMANAGER.CPP:<br/>
+* API SERVER: DONE - Make sure that in APIAccountManager that the APIKeyRequest handler is:<br/>
+ &nbsp; &nbsp;- looking for the 'action' key/value pair field and if value= 'new', regenerate only the key specified, otherwise, expect the value= 'get', in which case return existing key value<br/>
+ &nbsp; &nbsp;- ONLY regenerate the key specified by keytype<br/>
+ &nbsp; &nbsp;- FIXED - ModuleManager should NOT maintain its own ref to the 'operator' object, such as client or NPC, but rather, call a function GetShipOperator() on the Ship (owner of the MM instance) which returns the reference to the ShipOperatorInterface object owned by Ship<br/>
+ &nbsp; &nbsp;- DONE - adjust use of m_client in the code such that when NPC ships with no client object are instantiating and using the MM, it does not crash the server trying to access a non-existent Client object since the pointer will be NULL.<br/>
+* DONE - SHIP.CPP: &nbsp;adjust use of m_client in the code such that when NPC ships with no client object are spawning ship objects, it does not crash the server trying to access a non-existent Client object since the pointer will be NULL.<br/>
+ &nbsp; &nbsp;- Ship.h: &nbsp;consider another ref to the NPC object that owns this Ship, set via a new constructor<br/>
+ &nbsp; &nbsp;- Ship::ValidateAddItem() - no check for skills, just add item!<br/>
+ &nbsp; &nbsp;- Ship::AddItem() - get location id from NPC ref if client ref is NULL<br/>
+ &nbsp; &nbsp;- Ship::RemoveItem() - use NPC ref when Client ref is NULL<br/>
+ &nbsp; &nbsp;- Ship::RemoveRig() - use NPC ref when Client ref is NULL<br/>
+ &nbsp; &nbsp;- Ship::SetOwner() - create another overload of this that takes NPC object ref and sets Client ref to NULL while setting internal NPC ref to ref passed in<br/>
+* DONE - ShipOperatorInterface needs a destructor, set all pointers to NULL inside<br/>
+* DONE - insert ShipOperatorInterface into Ship class va composition, and set its internal pointers according to the owner object calling the SetClient(Client *), SetNPC(NPC *), or SetPCP(PCP *)<br/>
+* DONE - write a public GetOperatorInetrface() so that destiny and ModuleManager can use its functions to make calls on the operator class<br/>
+* DONE - make use of the interface object inside of Ship and ModuleManager classes instead of direct pointer to Client class object<br/>
+* merge Luck's evemu_incursion_mm branch into evemu_incursion main codeline<br/>
+</body></html>

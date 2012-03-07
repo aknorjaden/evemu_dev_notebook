@@ -1,0 +1,19 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Ships</title>
+</head><body><span style="font-family: Nokia Sans">* CRAZY: derive a special capital docking ship class from Ship class that "owns" a Station object with special attributes such as corporation info (logo, name, etc) for the ship owner's corporation, radius = zero so no graphics show up, and position always updated when the inheirited Ship's position is updated. &nbsp;this allows "true-docking" in capital ships \o/, but i think we need to have dynamic station spawning to make this work.<br/>
+<br/>
+<br/>
+*** PROBLEMS ***<br/>
+* Assembling Tech 3 ships is better now that ShipBound::Handle_AssembleShip() function is handleing the of the differently formatted packets, however, when the player goes to board the T3 ship, the client generates an exception mentioning that there are no modules fitted on the ship. &nbsp;It looks like the client is expecting the server to fit all selected subsystems to the ship upon assembly.<br/>
+ &nbsp;- DONE - UPON ASSEMBLY, SUBSYSTEMS ARE MOVED INTO SHIP INVENTORY USING FLAGS FOR APPROPRIATE SUBSYSTEM SLOTS - Try finding the code that instructs the ModuleManager to fit modules to a ship and put that into the ShipBound::Handle_AssembleShip() function and add the five subsystem modules to the ship then make sure they get removed from the station items window.<br/>
+ &nbsp;- Boarding the assembled Tech 3 ship still generates client exceptions and does not show the ship model at all, then never works to allow making any other ship active unless logoff-logon is done.<br/>
+<br/>
+<br/>
+*** TODO ***<br/>
+* Need to have a set of attribute modifiers that are compiled from current player skills, get updated when skills change, and get applied to ship's attributes when the player boards a ship, then gets deembedded from the ship attributes when the player leaves a ship.<br/>
+ &nbsp;- This list should be part of the Character class and used by the Client class to modify ship attributes accordingly when a ship is boarded or left.<br/>
+<br/>
+</span></body></html>

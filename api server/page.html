@@ -1,0 +1,341 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>API Server</title>
+</head><body><br/>
+*** Implement an API Server in evemu using caytchen's image server ***<br/>
+<br/>
+*** 3RD PARTY APPLICATION TESTING WITH EVEMU API SERVER ***<br/>
+* EVEHQ is open source, so find where url is, rebuild and test with evemu api server<br/>
+* PHEAL is open source, so find where url is, rebuild and test with evemu api server<br/>
+* EveAPI is closed source, so find where the api url is and replace with a bogus url and redirect it using hosts file<br/>
+<br/>
+<br/>
+*** NEEDS TESTED ***<br/>
+<br/>
+<br/>
+*** IN PROGRESS ***<br/>
+<br/>
+<br/>
+*** WHAT'S NEXT ***<br/>
+* CACHE SYSTEM - implement a cache class that puts the string concatenation of userID, apiKey, service and service handler through a hash and store the xml in a file with name = to the hash value with the .xml extension and put the expiration time in the first line of the file in this format 'yyyy-mm-dd hh:mm::ss'<br/>
+ &nbsp; &nbsp;- APICachedManager : public Singleton<br/>
+ &nbsp; &nbsp;- #define sAPICache APICachedManager::get()<br/>
+ &nbsp; &nbsp;- USAGE STEPS:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;1. concatenate all parameter values into one string<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;2. pass string into APICacheManager::CacheRequest( const std::string * key, std::string * xml)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;3. if it returns true, then use xml string to return to client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;4. if it returns false, then generate new xml string<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;5. pass new xml string, parameter value concatenation, current time, and cache style into APICacheManager::CacheSubmit(const std::string * key, const std::string * xml, uint64 timeNow, uint32 cacheStyle)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;6. make sure cacheSubmit returns true, otherwise log error in console<br/>
+ &nbsp; &nbsp;- generate hash from string of entire query, concatenating service, service handles, userID and apiKey, then put through PasswordModule::GeneratePassHash() then run hash string through PasswordModule:GenerateHexString(), use first two chars to make a directory, then remaining 38 chars to name the cache file with '.apiobj' extension<br/>
+ &nbsp; &nbsp;- need an apiserver_cache_dir setting in the eve-server.xml file, &nbsp;coordinate with Pyrii<br/>
+ &nbsp; &nbsp;- figure out what code to use to work with files: use fsteam (ios::in|ios::out) from c++<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- need to build a path to file friendly with win and linux<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- need to use mkdir() to make new subdirs below /api_cache/<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- need to find function to delete file<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- need to open file for read, read first line (expiry time) and check for expiry<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- need to make new file for write, insert cache expiry time/date, then append xml document<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- need to open existing file for write and refresh expiry time/date and xml document<br/>
+ &nbsp; &nbsp;- short cache: expiration in 5 minutes<br/>
+ &nbsp; &nbsp;- modified short cache: expiration in 15 minutes<br/>
+ &nbsp; &nbsp;- long cache: expiration in 24 hours <br/>
+<br/>
+* API CALLS IMPLEMENTATION:<br/>
+ &nbsp; &nbsp;- /admin calls<br/>
+ &nbsp; &nbsp;- /account calls<br/>
+ &nbsp; &nbsp;- /char calls<br/>
+ &nbsp; &nbsp;- /server calls<br/>
+ &nbsp; &nbsp;- /corp calls<br/>
+ &nbsp; &nbsp;- /map calls<br/>
+ &nbsp; &nbsp;- /eve calls<br/>
+<br/>
+<br/>
+*** WHAT'S DONE ***<br/>
+* DONE - EFT - check to make sure you have &nbsp;the correct version of EFT for Incursion 1.6<br/>
+* GET EFT TO WORK WITH API SERVER:<br/>
+ &nbsp; &nbsp;- DONE - hack EFT.exe to use evemu api url and port 64<br/>
+ &nbsp; &nbsp;- DONE - test EFT connecting to evemu api server<br/>
+ &nbsp; &nbsp;- DONE - get example /account/Characters.xml.aspx to work in EFT<br/>
+ &nbsp; &nbsp;- DONE - get example /char/CharacterSheet.xml.aspx to work in EFT<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ skills imported, but implants did not, investigate<br/>
+ &nbsp; &nbsp;- DONE - Fully implement /account/Characters.xml.aspx call<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ DONE - implement DB functions that pull info to fill xml packet<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ DONE - implement code to buid xml from db data containers<br/>
+ &nbsp; &nbsp;- Fully implement /char/CharacterSheet.xml.aspx call<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ implement DB functons that pull info to fill xml packet<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- DONE - skills list<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- DONE - character info<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- DONE - learning attributes<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- implants<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- corporation roles<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ implement code to buid xml from db data containers<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- DONE - skills list<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- DONE - character info<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- DONE - learning attributes<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- implants<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- corporation roles<br/>
+* DONE - GET EVEMON TO WORK WITH API SERVER:<br/>
+ &nbsp; &nbsp;- Working API Calls:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ /server/ServerStatus.xml.aspx<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ /account/Characters.xml.aspx<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ /account/AccountStatus.xml.aspx<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ /char/CharacterSheet.xml.aspx<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ STUB W/ FAKE DATA - /char/SkillQueue.xml.aspx<br/>
+ &nbsp; &nbsp;- DONE - Test new /account/Characters.xml.aspx and /char/CharacterSheet.xml.aspx calls on EveMon<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ working stub in place for /char/SkillQueue.xml - example works with EVEmon<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ works to this call /char/SkillInTraining.xml.aspx<br/>
+ &nbsp; &nbsp;- what other calls does EveMon make?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ get pilot portrait ???<br/>
+<br/>
+* DONE - Implement http POST to support all the 3rd party apps as they seem to rprefer that over GET<br/>
+* DONE - EFT is closed source, but URL can be modified by editing EFT.exe and search-replace 'api.eve-online.com' &nbsp;- must NOT be longer and if shorted, make end bytes \x00, replace url with a bogus url and redirect it using hosts file<br/>
+* DONE - EFT seems to use POST, not GET, so study format of POST and ensure compatible operation<br/>
+* adapted code from ImageServer files and changed tcp listened port<br/>
+* achieved variable and class name changes all of which build with no errors<br/>
+* achieved port listening and query GET capture<br/>
+* achieved partial parsing of GET query string<br/>
+* achieved return of hard-coded test xml document and is viewable in a browser<br/>
+* achieved full parsing of the GET query string into a std::vector&lt;std::pair&lt;std::string, std::string&gt;&gt; container to be sent to the target service manager<br/>
+* built empty service manager classes derived from base class that will handle errors when requested service manager does not exist as well as have xml-construction functions<br/>
+* updated server files to route the api command call to the appropriate service manager's ProcessCall() public function based on the requested service manager in the URL<br/>
+* implement check for GET or POST, reject anything else<br/>
+* implement parsing of http POST requests in APIServerConnection::ProcessHeaders()<br/>
+* implement a 404 file not found response to any other http query than GET or POST<br/>
+ &nbsp; &nbsp;- put code that inserts the html for the 404 into the APIServer class<br/>
+* implement a 404 file not found response to a query on a service name that does not exist www.host.com/service/ServiceManager.xml.aspx<br/>
+* implement a 404 file not found response to a query on a service manager name that does not exist: &nbsp;www.host.com/service/ServiceManager.xml.aspx<br/>
+* implement the xml construction functions in the APIServiceManager class<br/>
+ &nbsp; &nbsp;- _BuildRowSet<br/>
+ &nbsp; &nbsp;- _BuildRow<br/>
+ &nbsp; &nbsp;- _CloseRowSet<br/>
+* implement DB interface class<br/>
+* implement DB operations on the new 'accountApi' table:<br/>
+ &nbsp;- DONE - get accountID from username (accountName in 'account' table)<br/>
+ &nbsp;- DONE - get api account info using accountID from 'accountApi' table<br/>
+ &nbsp;- DONE - update existing api account with new keys using userID<br/>
+ &nbsp;- DONE - insert new row with a unique auto_increment userID and random limited and full api keys<br/>
+ &nbsp;- DONE - update existing api account with new api role using userID<br/>
+ &nbsp;- ???<br/>
+* APIServiceManager: implement authentication validation of supplied userID and key in GET/POST<br/>
+* Every function in APIServiceDB<br/>
+* APIAdminManager - API Authntication function: query accountApi table with userID and check key with that supplied with API query, return false if userID not found or supplied api key does not match key from DB, return true if key matches<br/>
+* OFF TOPIC: Search codebase for '::get()' string and correct all uses of it that are NOT macros to use a macro for the singleton class such as this: &nbsp; #define sDatabase ( DBcore::get() )<br/>
+* REJECTED - change how account password is received by the api server such that the password is obscured somehow by a hash or something and ensure it is url encoded<br/>
+* Validation of username and password hash against the database entry in the accont table<br/>
+* Validation of full or limited api key against database entry, or error if userID not found<br/>
+* ADMIN SERVICE: implement userID, apiKey creation or regeneration by submission of API Request query supplying accountName and password for eve online account<br/>
+<br/>
+<br/>
+*** USAGE ***<br/>
+send: http://host:port/&lt;service_manager&gt;/&lt;service_handler&gt;?param1=value1&amp;param2=value2...<br/>
+receive: xml document<br/>
+<br/>
+<br/>
+*** SERVICE MANAGERS ***<br/>
+- account<br/>
+- admin<br/>
+- char<br/>
+- corp<br/>
+- eve<br/>
+- map<br/>
+- server<br/>
+<br/>
+<br/>
+*** CLASS ORGANIZATION ***<br/>
+* APIServer<br/>
+* APIServerListener<br/>
+* APIServerConnection<br/>
+* APIServiceDB<br/>
+* APIServiceCache<br/>
+* APIServiceManager<br/>
+ &nbsp; &nbsp;- APIAccountManager<br/>
+ &nbsp; &nbsp;- APIAdminManager<br/>
+ &nbsp; &nbsp;- APICharacterManager<br/>
+ &nbsp; &nbsp;- APICorporationManager<br/>
+ &nbsp; &nbsp;- APIEveSystemManager<br/>
+ &nbsp; &nbsp;- APIMapManager<br/>
+ &nbsp; &nbsp;- APIServerManager<br/>
+<br/>
+<br/>
+*** Major Data Structures ***<br/>
+--- The vector of string pairs which are the (parameter,value) pairs encoded in the GET URI<br/>
+typedef std::vector&lt;std::pair&lt;std::string, std::string&gt;&gt; APICommandCall<br/>
+ &nbsp; &nbsp;- receiving method will be declared as class::method( const APICommandCall * pAPICall )<br/>
+<br/>
+--- The XML document created by the service managers and returned to the api server<br/>
+TiXmlDocument * _pTiXmlDocument<br/>
+<br/>
+class APIServer<br/>
+public:<br/>
+ &nbsp;+ <br/>
+protected:<br/>
+ &nbsp;- std::map&lt;std::string, APIServiceManager *&gt; m_ServiceManagers<br/>
+<br/>
+<br/>
+class APIServiceManager<br/>
+public:<br/>
+ &nbsp;+ std::tr1::shared_ptr&lt;std::string&gt; ProcessCall( const * APICommandCall pAPICall )<br/>
+ &nbsp;+ std::tr1::shared_prt&lt;std::string&gt; ReportError(uint32 error)<br/>
+protected:<br/>
+ &nbsp;- void _BuildHeader(uint32 cacheStyle)<br/>
+ &nbsp;- void _BuildRowSet(std::string name, std::string key, std::vector&lt;std::string&gt; * &nbsp;columns)<br/>
+ &nbsp;- void _CloseRowSet()<br/>
+ &nbsp;- void _BuildRow(std::vector&lt;std::string&gt; * columns)<br/>
+ &nbsp;- void _BuildTag()<br/>
+ &nbsp;- void _BuildTag(std::string name, std::vector&lt;std::string&gt; * params)<br/>
+ &nbsp;- void _CloseTag()<br/>
+ &nbsp;- void _BuildSingleTag(std::string name, std::vector&lt;std::string&gt; * params)<br/>
+ &nbsp;- void _BuildErrorTag(uint32 error)<br/>
+<br/>
+<br/>
+*** API DEFINITIONS ***<br/>
+<br/>
+*** ??? ***<br/>
+SERVICE MANAGER: ?<br/>
+URI: &nbsp;?<br/>
+<br/>
+RECEIVE:<br/>
+&lt;eveapi versiom="2"&gt;<br/>
+ &nbsp;&lt;currentTime&gt;2011-01-01 00:00:00&lt;/currentTime&gt;<br/>
+ &nbsp;????<br/>
+ &nbsp;&lt;cachedUntil&gt;2011-01-01 00:05:00&lt;/cachedUntil&gt;<br/>
+&lt;/eveapi&gt;<br/>
+<br/>
+<br/>
+*** REQUEST NEW API KEY AND SEND BACK EXISTING USER ID ***<br/>
+SERVICE MANAGER: &nbsp;???<br/>
+URI: &nbsp;/???/???.xml.aspx<br/>
+ &nbsp; &nbsp;parameters<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- ???<br/>
+<br/>
+RECEIVE:<br/>
+&lt;eveapi versiom="2"&gt;<br/>
+ &nbsp;&lt;currentTime&gt;2011-01-01 00:00:00&lt;/currentTime&gt;<br/>
+ &nbsp;???<br/>
+ &nbsp;&lt;expiresOn&gt;2011-06-01 00:00:00&lt;/expiresOn&gt;<br/>
+&lt;/eveapi&gt;<br/>
+<br/>
+<br/>
+SERVICE MANAGER: &nbsp;account<br/>
+URI: &nbsp;/account/APIKeyRequest.xml.aspx<br/>
+ &nbsp; &nbsp;parameters<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- username : your eveonline account username<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- password : your eveonline account password<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- keyType : "limited", "full"<br/>
+<br/>
+RECEIVE:<br/>
+&lt;eveapi versiom="2"&gt;<br/>
+ &nbsp;&lt;currentTime&gt;2011-01-01 00:00:00&lt;/currentTime&gt;<br/>
+ &nbsp;&lt;userID&gt;562478&lt;/userID&gt;<br/>
+ &nbsp;&lt;apiFullKey&gt;136284AB3849BDF456094CBDEA368DB349AD4...&lt;/apiFullKey&gt;<br/>
+OR<br/>
+ &nbsp;&lt;apiLimitedKey&gt;136284AB3849BDF456094CBDEA368DB349AD4...&lt;/apiLimitedKey&gt;<br/>
+ &nbsp;&lt;expiresOn&gt;2011-06-01 00:00:00&lt;/expiresOn&gt;<br/>
+&lt;/eveapi&gt;<br/>
+<br/>
+<br/>
+TO WRITE - EVEMU-ONLY:<br/>
+* /admin/KickPlayer<br/>
+ &nbsp; &nbsp;- 1: adminUserID<br/>
+ &nbsp; &nbsp;- 2: adminFullAPIKey<br/>
+ &nbsp; &nbsp;- 3: acountID<br/>
+* /admin/BanPlayer<br/>
+ &nbsp; &nbsp;- 1: adminUserID<br/>
+ &nbsp; &nbsp;- 2: adminFullAPIKey<br/>
+ &nbsp; &nbsp;- 3: acountID<br/>
+* /admin/ServerControl<br/>
+ &nbsp; &nbsp;- 1: adminUserID<br/>
+ &nbsp; &nbsp;- 2: adminFullKey<br/>
+ &nbsp; &nbsp;- 3: command = ('shutdown', 'restart')<br/>
+ &nbsp; &nbsp;- 4: phase = ('alpha', 'lambda', 'omega')<br/>
+* /admin/EvemuGiftsToPlayers<br/>
+ &nbsp; &nbsp;- 1: adminUserID<br/>
+ &nbsp; &nbsp;- 2: adminFullKey<br/>
+ &nbsp; &nbsp;- 3: itemTypeID<br/>
+ &nbsp; &nbsp;- 4: dateTimeGranted = 'YYYY-MM-DD_HH-MM' - GMT/UTC time zone<br/>
+* /admin/EveWideMessage<br/>
+ &nbsp; &nbsp;- 1: adminUserID<br/>
+ &nbsp; &nbsp;- 2: adminFullKey<br/>
+ &nbsp; &nbsp;- 3: message = &lt;url-encoded string&gt; - this means, we need url-decoding in server somehow...<br/>
+* /admin/UpdateCharacterApiRole<br/>
+ &nbsp; &nbsp;- 1: adminUserID<br/>
+ &nbsp; &nbsp;- 2: adminFullKey<br/>
+ &nbsp; &nbsp;- 3: charUserID<br/>
+* /admin/???<br/>
+ &nbsp; &nbsp;- 1: adminUserID<br/>
+ &nbsp; &nbsp;- 2: adminFullKey<br/>
+<br/>
+* /account/AuthenticateUserAccount.xml.aspx<br/>
+ &nbsp; &nbsp;- 1: username<br/>
+ &nbsp; &nbsp;- 2: password<br/>
+<br/>
+*** Extended skill queue requires mods to Character::GetSkillQueue so as to not return the entire list of skills, but rather only those that fit in the 24 hour window including the one skill that spills over the 24 hour limit<br/>
+* /char/AddSkillToExtendedQueue<br/>
+ &nbsp; &nbsp;- 1: userID<br/>
+ &nbsp; &nbsp;- 2: fullKey<br/>
+ &nbsp; &nbsp;- 3: characterID<br/>
+ &nbsp; &nbsp;- 4: skillTypeID<br/>
+* /char/RemoveSkillFromExtendedQueue<br/>
+ &nbsp; &nbsp;- 1: userID<br/>
+ &nbsp; &nbsp;- 2: fullKey<br/>
+ &nbsp; &nbsp;- 3: characterID<br/>
+ &nbsp; &nbsp;- 4: skillTypeID<br/>
+* /char/ClearExtendedSkillQueue<br/>
+ &nbsp; &nbsp;- 1: userID<br/>
+ &nbsp; &nbsp;- 2: fullKey<br/>
+ &nbsp; &nbsp;- 3: characterID<br/>
+* /char/GetExtendedSkillQueue<br/>
+ &nbsp; &nbsp;- 1: userID<br/>
+ &nbsp; &nbsp;- 2: fullKey<br/>
+ &nbsp; &nbsp;- 3: characterID<br/>
+* /char/AddSkillToQueue<br/>
+ &nbsp; &nbsp;- 1: userID<br/>
+ &nbsp; &nbsp;- 2: fullKey<br/>
+ &nbsp; &nbsp;- 3: characterID<br/>
+ &nbsp; &nbsp;- 4: skillTypeID<br/>
+* /char/RemoveSkillFromQueue<br/>
+ &nbsp; &nbsp;- 1: userID<br/>
+ &nbsp; &nbsp;- 2: fullKey<br/>
+ &nbsp; &nbsp;- 3: characterID<br/>
+ &nbsp; &nbsp;- 4: skillTypeID<br/>
+* /char/ClearSkillQueue<br/>
+ &nbsp; &nbsp;- 1: userID<br/>
+ &nbsp; &nbsp;- 2: fullKey<br/>
+ &nbsp; &nbsp;- 3: characterID<br/>
+* ???<br/>
+<br/>
+<br/>
+*** ??? ***<br/>
+SERVICE MANAGER: ?<br/>
+URI: &nbsp;?<br/>
+<br/>
+RECEIVE:<br/>
+&lt;eveapi versiom="2"&gt;<br/>
+ &nbsp;&lt;currentTime&gt;2011-01-01 00:00:00&lt;/currentTime&gt;<br/>
+ &nbsp;????<br/>
+ &nbsp;&lt;cachedUntil&gt;2011-01-01 00:05:00&lt;/cachedUntil&gt;<br/>
+&lt;/eveapi&gt;<br/>
+<br/>
+*** EVEMU-ONLY ERROR RESPONSES ***<br/>
+EVE live uses error codes 1xx, 2xx, 5xx, and 9xx series, therefore, EVEmu will use base of 2000<br/>
+<br/>
+*** ??? ***<br/>
+&lt;eveapi versiom="2"&gt;<br/>
+ &nbsp;&lt;currentTime&gt;2011-01-01 00:00:00&lt;/currentTime&gt;<br/>
+ &nbsp;????<br/>
+ &nbsp;&lt;cachedUntil&gt;2011-01-01 00:05:00&lt;/cachedUntil&gt;<br/>
+&lt;/eveapi&gt;<br/>
+<br/>
+<br/>
+*** SERVER SIDE SUPPORT ***<br/>
+<br/>
+* NEED NEW DB table 'apikeys' with structure:<br/>
+ &nbsp; &nbsp;- 'accountID' - int(10)<br/>
+ &nbsp; &nbsp;- 'userID' - int(10)<br/>
+ &nbsp; &nbsp;- 'fullKey' - varchar(64)<br/>
+ &nbsp; &nbsp;- 'limitedKey' - varchar(64)<br/>
+ &nbsp; &nbsp;- 'apiRole' - int(10)<br/>
+<br/>
+</body></html>

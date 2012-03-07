@@ -1,0 +1,16 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Drone Usage</title>
+</head><body><span style="font-family: Nokia Sans">*** TODO ***<br/>
+* Need to inherit InventoryItem to create a new item class Drone<br/>
+* We need &nbsp;a drone manager to handle the client calls for launching and contrrolling drones, much like an AI, so could this just inheirit from NPCAI or be different altogether? &nbsp;DroneEntity should inheirit from this new DroneAI class<br/>
+<br/>
+<br/>
+====================<br/>
+== &nbsp; &nbsp; COMPLETED &nbsp; &nbsp; ==<br/>
+====================<br/>
+* DONE - fix Client::ScoopDrone() to actually transfer drone to drone bay or cargo bay, missing some kind of update to tell client that cargo/drone bay contents changed, look at code that moves items in and out of cargo containers - ADDED CHANGE OWNER TO PLAYER<br/>
+* NOT NEEDED SINCE SCOOPDRONE WORKS NOW - obtain correct packet returns to the client for scooping a drone from space to either cargo (ShipBound::Scoop) or drone bay (ShipBound::ScoopDrone)<br/>
+</span></body></html>

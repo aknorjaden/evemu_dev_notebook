@@ -1,0 +1,297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>MM Use Cases</title>
+</head><body>==============================================<br/>
+ &nbsp; &nbsp;USE CASES<br/>
+==============================================<br/>
+<br/>
+USE CASE: ?<br/>
+--------------------------------------------------<br/>
+CLIENT:<br/>
+- User &lt;action&gt;<br/>
+- client sends &lt;packet_type&gt; cmd packet<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+<br/>
+<br/>
+USE CASE: FIT MODULE TO SHIP:<br/>
+--------------------------------------------------<br/>
+* ERROR SCENARIOS - &nbsp;Fit module<br/>
+ &nbsp;- insufficient skills ==&gt; module NOT fitted<br/>
+ &nbsp;- insufficient slots available, or unsupported ship type ==&gt; module NOT fitted<br/>
+ &nbsp;- insufficient power or cpu ==&gt; module fitted, but NOT onlined<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+CLIENT:<br/>
+* User drags a module from either cargo, station items, cargo container in space or not, or a corp maint. array at a POS within range of a ship maint. array to Fitting Window on specific slot or middle of fitting window, in which case client picks slot to put it in<br/>
+- client sends InventoryBound Add cmd packet<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+ &nbsp; &nbsp;- add cmd packet received<br/>
+ &nbsp; &nbsp;* InventoryBound::Handle_Add()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Packet decoded for itemID, flag, action (fit, unfit, etc)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- call to InventoryBound::_ExecAdd()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module being moved from an inventory to the ship's inventory<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Call made to Ship::FitModule() with itemID, flag, and action info<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Ship::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- create new instance of ModuleAction<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to ModuleManager::FitModule() with itemID, flag, and pointer to<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* ModuleManageer::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check for at least one available slot in module bank indicated by flag value<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF no available slots, THEN RETURN FALSE w/ ERROR to Client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- If a high power slot module (call module method to check), then check if module is a<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; turret or a missile launcher and if either one applies, check to see if there are any<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; slots of that type available on the ship<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF no available slots of that type are available, THEN RETURN FALSE w/ ERROR to<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to GenericModule::Fit() with pointer to ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* GenericModule::Fit()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Validate skills to fit module<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF validate fails, THEN RETURN FALSE w/ ERROR to Client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Validate that ship does not have maximum allowed amount of this module type/<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;group already fitted<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF validate fails, THEN RETURN FALSE w/ ERROR to Client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Q. Does module mass get added to ship mass at fit or only at online?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ A. module mass added at ____, some may have additional mass added on<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; activate<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Change module state to Fitted<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// GenericModule::Fit()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF return is FALSE, THEN RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Change module flag to slot flag<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Insert module &lt;flag, GenericModule *&gt; pair into appropriate slot bank in Ship object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// ModuleManager::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF return is FALSE, THEN destroy ModuleAction object and RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Add &lt;groupID, 1&gt; to groupsByFitted container OR if group exists, increment 'second'<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- *** Query ModuleAction object for any actions to take<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// Ship::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module is moved from existing inventory to ship inventory with flag set to target slot<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- RETURN OK to Client<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: UNFIT MODULE FROM SHIP:<br/>
+--------------------------------------------------<br/>
+* ERROR SCENARIOS - &nbsp;Fit module<br/>
+ &nbsp; &nbsp;- insufficient ship/container/inventory cargo capacity to accept assembled module volume and any installed charges ==&gt; module NOT unfitted nor any charges removed<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;-&gt; capture this error in believe on eve live<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+CLIENT:<br/>
+* User drags a module from a slot installed on a ship to either cargo, station items, cargo container in space or not, or a corp maint. array at a POS within range of a ship maint. array<br/>
+- client sends InventoryBound Add cmd packet<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+ &nbsp; &nbsp;- add cmd packet received<br/>
+ &nbsp; &nbsp;* InventoryBound::Handle_Add()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Packet decoded for itemID, flag, action (fit, unfit, etc)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module being UN-fitted from ship and moved to different inventory object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Validate sufficient cargo capacity for unpackaged module in target inventory object including any installed charges, check capacity &gt;= sum of assembled module volume and charge volume<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- IF validate fails, RETURN ERROR to Client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Call made to Ship::UnfitModule() with itemID, flag, and action info<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Ship::UnfitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- create new instance of ModuleAction<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to ModuleManager::UnfitModule() with itemID, flag, and pointer to<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* ModuleManager::UnfitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to GenericModule::Unfit() with pointer to ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* GenericModule::Unfit()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Q. Does the client automatically explicitly call OFFLINE when module is unfitted?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ A. ???<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF Module State == Online, THEN:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&gt; Add module attribute modifiers to ModuleAction MyShipAttributModifiers<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;map to de-embed them from ship attributes<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- END IF<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Change Module State to Unfitted<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - RETURN TRUE &nbsp;// GenericModule::Unfit()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF return is FALSE, THEN RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Change module flag to appropriate inventory flag<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Remove module &lt;flag, GenericModule *&gt; pair from its slot bank in Ship object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// ModuleManager::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF return is FALSE, THEN destroy ModuleAction object and RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Decrement groupsByFitted container for this groupID OR Remove pair if at 1 already<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- *** Query ModuleAction object for any actions to take<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// Ship::UnfitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module is moved from ship inventory to target inventory with flag set to inventory<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- RETURN OK to Client<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: ONLINE MODULE:<br/>
+--------------------------------------------------<br/>
+* ERROR SCENARIOS - Online module<br/>
+ &nbsp;- insufficient power or cpu to online ==&gt; module NOT onlined<br/>
+ &nbsp;- if in space, insufficient capacitor charge to online ==&gt; module NOT onlined<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+CLIENT;<br/>
+* Client attempts auto-Online after fitting OR user clicks the module on the slot to online<br/>
+- client sends ??? cmd packet<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+ &nbsp; &nbsp;- ??? cmd packet received<br/>
+ &nbsp; &nbsp;* ???<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Packet decoded for itemID, flag, action (fit, unfit, etc)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module being fitted to ship<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Call made to ModuleManager::OnlineModule() with itemID, flag, and action info<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* ModuleManager::Online()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to Ship::GetModule() with itemID to get GenericModule *<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF pointer is NULL, THEN RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- create new instance of ModuleAction<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to GenericModule::Online() with pointer to ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* GenericModule::Online()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Validate that Max Onlined modules for this type/group has not yet been reached<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF vazliidate &nbsp;FAILS, THEN RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Validate power grid<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF insufficient power, THEN RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Validate cpu usage<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF insufficient cpu, THEN RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&gt; Add module attribute modifiers to ModuleAction MyShipAttributModifiers map<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;to embed them into ship attributes<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Change Module State to Online<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// GenericModule::Online()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF return is FALSE, THEN destroy ModuleAction object and RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Increment groupsByOnlined container for this groupID OR Add pair if non-existant<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- *** Query ModuleAction object for any actions to take<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// ModuleManager::OnlineModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- RETURN OK to Client<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: OFFLINE MODULE:<br/>
+--------------------------------------------------<br/>
+* ERROR SCENARIOS - &nbsp;Fit module<br/>
+ &nbsp; &nbsp;- NONE<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+CLIENT:<br/>
+* User clicks on the module to put it Offline<br/>
+- client sends ???<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+ &nbsp; &nbsp;- ??? packet received<br/>
+ &nbsp; &nbsp;* ???<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Packet decoded for itemID, flag, action (fit, unfit, etc)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module being UN-fitted from ship and moved to different inventory object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Validate sufficient cargo capacity for unpackaged module in target inventory object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- IF validate fails, RETURN ERROR to Client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Call made to ModuleManager::UnfitModule() with itemID, flag, and action info<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* ModuleManager::UnfitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- create new instance of ModuleAction<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to Ship::UnfitModule() with itemID, flag, and pointer to ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Ship::UnfitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to GenericModule::Unfit() with pointer to ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* GenericModule::Unfit()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF Module State == Online, THEN:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&gt; Add module attribute modifiers to ModuleAction MyShipAttributModifiers<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;map to de-embed them from ship attributes<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- END IF<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Change Module State to Unfitted<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - RETURN TRUE &nbsp;// GenericModule::Unfit()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF return is FALSE, THEN RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Change module flag to appropriate inventory flag<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Remove module &lt;flag, GenericModule *&gt; pair from its slot bank in Ship object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// Ship::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF return is FALSE, THEN destroy ModuleAction object and RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Decrement groupsByFitted container for this groupID OR Remove pair if at 1 already<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- *** Query ModuleAction object for any actions to take<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// ModuleManager::UnfitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module is moved from ship inventory to target inventory with flag set to inventory<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- RETURN OK to Client<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: ACTIVATE W/ OR W/O OVERLOAD MODULE:<br/>
+--------------------------------------------------<br/>
+* ERROR SCENARIOS - Activate OR Repeat-Activate module<br/>
+ &nbsp;- insufficient capacitor charge to meet activation capacitor need ==&gt; module NOT activated<br/>
+ &nbsp;- insufficient charges loaded to activate ==&gt; module NOT activated<br/>
+ &nbsp;- external effect preventing activation<br/>
+ &nbsp; &nbsp; &nbsp;+ cloak engaged<br/>
+ &nbsp; &nbsp; &nbsp;+ ship is in warp<br/>
+ &nbsp; &nbsp; &nbsp;+ ship is being warp scrammed such that warp strength is &lt; 1, microwarpdrives only<br/>
+ &nbsp; - insufficient fuel in cargo/fuel bay ==&gt; module NOT activated<br/>
+ &nbsp; - reactivation delay not yet expired ==&gt; module NOT activated, display time remaining<br/>
+* Overloading module<br/>
+ &nbsp;- have not trained thermodynamics skill ==&gt; overloading NOT permitted<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+CLIENT:<br/>
+- User clicks a deactivated Afterburner module in the client ui...<br/>
+- client sends Activate cmd packet<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+ &nbsp; &nbsp;- activate cmd packet received<br/>
+ &nbsp; &nbsp;* DogmaIMBound::Handle_Activate()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Packet is decoded for itemID and desired effect ("online")<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Call made to ModuleManager::Activate() with itemID and effect information<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* ModuleManager::Activate()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call is made to ItemFactory to obtain the InventoryItemRef for the supplied itemID<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to Ship::GetModule() with itemID to get GenericModule *<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- If NULL, return w/ error, else instantiate a new ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to (GenericModule *)-&gt;Activate() w/ effect params and ModuleAction *<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* AfterburnerModule::Activate()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check if ship is in warp, if so RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check if ship is cloaked and if covops cloak used, if not RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check activation cap. need, if cap. too low then RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check current module state is ONLINE, if not RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check skills applicable to this module that affect its bonuses on the ship<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Apply those skill bonuses to enhance the module's bonuses<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Apply thoses updated bonuses to ModuleAction * object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Construct GFX packet object and pass pointer to ModuleAction * object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- If Overload enabled goto OVERLOADED state, else goto ACTIVE state<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Start effect timer<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- &lt;== RETURN TRUE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Invoke ModuleAction * object's query functions to determine what actions to take<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Take actions based on query results<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Mark module group as active, only for max group active number for this module, if exists<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- &lt;== RETURN bool result of AfterburnerModule::Activate() call<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- &lt;== RETURN bool result of ModuleManager::Activate() call<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: DE-ACTIVATE MODULE:<br/>
+--------------------------------------------------<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: INSTALL RIG MODULE:<br/>
+--------------------------------------------------<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: DESTROY RIG MODULE:<br/>
+--------------------------------------------------<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: INSTALL SUBSYSTEM MODULE:<br/>
+--------------------------------------------------<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: SWAP SUBSYSTEM MODULE:<br/>
+--------------------------------------------------<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+*** MODULE USAGE FAILURE METHODS AND HOW TO REPORT THEM ***<br/>
+* Fit module<br/>
+ &nbsp;- insufficient skills, module NOT fitted<br/>
+ &nbsp;- insufficient slots available, or unsupported ship type, module NOT fitted<br/>
+ &nbsp;- maximum allowed number of this module's type/group already fitted, module NOT fitted<br/>
+ &nbsp;- insufficient power or cpu, module fitted, but NOT onlined<br/>
+* Online module<br/>
+ &nbsp;- insufficient power or cpu to online, module NOT onlined<br/>
+ &nbsp;- if in space, insufficient capacitor charge to online, module NOT onlined<br/>
+* Activate OR Repeat-Activate module<br/>
+ &nbsp;- insufficient capacitor charge to meet activation capacitor need<br/>
+ &nbsp;- insufficient charges loaded to activate<br/>
+ &nbsp;- external effect preventing activation<br/>
+ &nbsp; &nbsp; &nbsp;+ cloak engaged<br/>
+ &nbsp; &nbsp; &nbsp;+ ship is in warp<br/>
+ &nbsp; &nbsp; &nbsp;+ ship is being warp scrammed such that warp strength is &lt; 1, microwarpdrives only<br/>
+ &nbsp; - insufficient fuel in cargo/fuel bay<br/>
+ &nbsp; - reactivation delay not yet expired<br/>
+* Overloading module<br/>
+ &nbsp;- have not trained thermodynamics skill<br/>
+<br/>
+<br/>
+<br/>
+</body></html>

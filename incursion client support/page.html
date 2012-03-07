@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Incursion Client Support</title>
+</head><body>*** MOVE EVEMU TO SUPPORT INCURSION CLIENT ***<br/>
+<br/>
+<br/>
+*** TO TEST ***<br/>
+* should test filling a queue full of skills past the 24 hour limit, then immediately disconnect, then leave server running and only reconnect client after entire queue has been trained<br/>
+* check placing drones into drone bay<br/>
+* check jettisoning cargo into space to jet-can<br/>
+* check launching GSC into space from cargo<br/>
+ &nbsp; &nbsp;- BROKEN - launching a can for self from a stack does not first split the stack<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ try stacked items splitting and stacking inside the GSC items window<br/>
+* check ship repackage, check repackage code to make sure it checks ship for damage and any attached rigs and/or modules<br/>
+* check item assemble, repackage, check repackage code to make sure it checks item for damage<br/>
+* try dragging a stack of modules onto the fitting window to see if InventoryBound::Handle_MultiAdd() gets called, and if so, check the arguments against the decode packet structure(s)<br/>
+* UPDATE PROJECT TRACKING WIKI PAGE<br/>
+<br/>
+<br/>
+*** PROBLEMS &amp; TASKS ***<br/>
+* CARGO CONTAINER: Cannot find attribute IDs 3 and 162, find out what these are and why they are red errors in the server log<br/>
+<br/>
+* BOARD SHIP:<br/>
+ &nbsp; &nbsp;- WARNING! - i must NOT call destructor on ShipService.cpp line 149, but rather call that class' Delete() &nbsp;method instead<br/>
+ &nbsp; &nbsp;- ShipService::Handle_Board() is not broadcasting removal of pod to the pod owner's client, find out why<br/>
+ &nbsp; &nbsp;- debug this function and discover what arg1 and arg2 really are, then make a new xmlp packet exclusively for board ship: Call_BoardShip, and name the fields appropriately<br/>
+ &nbsp; &nbsp;- also, print out both arguments and some mor debug log messages of which ship you're leaving and which ship you're entering, as well as the char ID and name<br/>
+<br/>
+* search for the string 'new ' in eve-server projet and analyze them to ensure proper object deletion is happening for each new<br/>
+<br/>
+* viewing assets is messed up - it causes an assert failure because 'chrMgr' does not overide '_CreateBoundObject()' method from PyService class, SIMPLE FIX: just copy a _CreateBoundObject() from another service and mod the code to work with charMgr<br/>
+<br/>
+* InventoryBound::Handle_MultiAdd() - what triggers this? &nbsp;find out and fix if necessary<br/>
+<br/>
+* repackage ship yields client exception - check eve live packet logs for matching packets<br/>
+ &nbsp; &nbsp;+ repackage should ask if you want to destroy any fitted rigs<br/>
+ &nbsp; &nbsp;+ should repackage be allowed if ship has damage?<br/>
+ &nbsp; &nbsp;+ repackage should strip all modules and charges, then unload all cargo and drones<br/>
+<br/>
+* when moving items between inventories, the server complains about missing AttrQuantity, id=805, is this a problem? &nbsp; perhaps search some packet logs to find usages of this attribute to find out what it needs to be used for<br/>
+<br/>
+* Go through all the major service files to find any handlers that are stubs, but do not have log messages to print out that they are a stub<br/>
+<br/>
+* on char select screen, 'active ship' and 'training queue status' are wrong, they are hard-coded<br/>
+<br/>
+* fix extra no-named chat channel created on login, it's trying to make a channel using charID<br/>
+<br/>
+* find out why there is no Rookie Help channel joined for new characters and check to make sure it no longer gets joined to when a character is more than 30 days old<br/>
+<br/>
+* make role for normal player and check chat channel creation and ability to chat in them<br/>
+ &nbsp; &nbsp;+ role = 0x6000_0000_0000_0000 for a normal player<br/>
+<br/>
+* using /spawn in space works for some static celestials, however, POS structures, drones, and others do not work right<br/>
+<br/>
+* UNDOCKING: for some reason the undock location for the station is either being loaded from the database wrong or calculated wrong, same goes for the dock orientation, it's reversed<br/>
+ &nbsp; &nbsp;- FIXED - oza fixe ServiceDB::GetStationInfo() to properly calculate the dock entry coords<br/>
+ &nbsp; &nbsp;- BROKEN &nbsp;- orientation of ship after undock is wrong, see if same issue as with position<br/>
+ &nbsp; &nbsp;- DONE - NO ISSUES - compare handler code to that in the apocrypha server<br/>
+<br/>
+* DOCKING; for some reason, docking outside of the docking perimeter (distance) still allows a ship to dock... &nbsp;is dock point wrong? &nbsp;is check for ship range wrong?<br/>
+ &nbsp; &nbsp;- compare handler code to that in the apocrypha server<br/>
+<br/>
+* BUBBLES: Bubble creation is somehow messed up. &nbsp;you warp into a gate's bubble and you get put into a new one that is NOT the gate's bubble. &nbsp;or, you fly at sublight away from a station far enough to fly into a new bubble, but flying back does not put you in the old bubble but makes a new one instead<br/>
+ &nbsp; &nbsp;- first theory: bubble finding is messed up if it has to make a new bubble where one already exists. &nbsp;this could be fixed in two steps: 1) perform bubble adjacency/coincidence using bubble radius and center coordinates to avoid near-100% overlap, and 2) with warping, only call UpdateBubble() method once upon entering bubble at end of warp<br/>
+ &nbsp; &nbsp;- second theory: consider making bubbles cubes instead of spheres, but that presents its own issues when a ship flies around a corner of the cube<br/>
+ &nbsp; &nbsp;- third theory: is there another shape that bubbles can take? &nbsp;some multi-faceted polygonal volume or an ovoid? &nbsp; more complex bubbles makes determining if an object is inside of any particular bubble more complex computationally<br/>
+ &nbsp; &nbsp;+ &nbsp;WARPING:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- upon entering warp acceleration, query BubbleManager for InBubble(), which needs to be written and when it returns false, call Remove(), no longer use UpdateBubble()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- when entering warp deceleration, query BubbleManager using destination coordinates to obtain a eference to a bubble, and it should either return a ref to an existing bubble, or create a new one, then query InBubble() on that bubble and when it returns true, then call UpdateBubble()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Is there a way to make this more 'automatic' somehow?<br/>
+<br/>
+* check clone upgrades and station moves<br/>
+<br/>
+<br/>
+*** DONE ***<br/>
+* check launching GSC into space from cargo<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ WORKS - open GSC cargo item window<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ move items from ship cargo bay to GSC<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- BROKEN: Handle_Add() cannot find key 'flag' in call.byname, just set flag = 5<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ move items from GSC to ship cargo bay<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- do same as above, dont check for flag, just set it to 5<br/>
+* EVILNUMBER: &nbsp;BIG PROBLEM: EvilNumber modifies left operand of all binary operators that are overloaded making it impossible to use the same object in multiple left operands across multiple statements while expecting the value to remain unchanged, which is expected since c = a + b never modifies a<br/>
+ &nbsp; &nbsp;- exlicitly declare 'operator=()'<br/>
+ &nbsp; &nbsp;- need: operator overloads for -=, *=, /=, %, <br/>
+ &nbsp; &nbsp;- need support for: &nbsp;pow, log, exp, sin, cos, tan, asin, acos, atan, sqrt, ln<br/>
+ &nbsp; &nbsp;- need EvilNumber constants such as PI, e, any others ?<br/>
+ &nbsp; &nbsp;- need to figure out what happens when a non-EvilNumber type is used with an EvilNumber object and an operator<br/>
+ &nbsp; &nbsp;- need to test every overloaded comparison operator with two EvilNumbers and with one EvilNumber and one non-EvilNumber<br/>
+* MAJOR DB TABLE FAILS:<br/>
+ &nbsp; &nbsp;- the 'entity_attributes' structure has 'valueInt' and 'valueFloat' set to UNSIGNED, remove that<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ fix this in 'evemu_dynamic-dump.sql' file<br/>
+ &nbsp; &nbsp;- the 'dgmEffects' table 'displayName' field needs 120 chars, dataID needs int, not smallint<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ fix these in the config.BulkData.dgmeffects.sql' file, but this is auto-generated, so how fix?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ did Oza use the /utils/CacheToSQL.cs program to translate the dgmEffects cache file to a mysql file, which is using smallint for UI2? &nbsp; if not, he needs to know about these two fields with insufficient width and modify his script and then put it into the /utils directory<br/>
+* MODULEEFFECTS: - Oza fixed this by translating the dgmEffects table contents from a client cache file, however, he probably did not fix the crash, so undo the table update to reproduce the crash and fix it<br/>
+ &nbsp; &nbsp;- RULE: even in the worst case during some request by a client or a Process() operation, if a DB query fails for any reason,send nothing to the client, do not crash the server, who cares if the client crashes and/or disconnects,DO NOT CRASH THE SERVER<br/>
+ &nbsp; &nbsp;- RULE: in the event the server just cannot do anythhing, either wait out the connection problem(s), or save the entire server state and shutdown the server<br/>
+ &nbsp; &nbsp;- we should make the server robust enough that db query failures do not crash the whole server, but just refuse to perform the requested action<br/>
+ &nbsp; &nbsp;- integrate oza's sql dump for dgmEffects table that has the graphicID column so that query running inside ModuleEffects works<br/>
+ &nbsp; &nbsp;- first, determine why the server crashes when you move a module from items window to fitting window, then fix the crash, even if a query fails<br/>
+* ALREADY WORKING - inject skill and start training does inject skill, but skill is not added to skill queue, nor is queue checked for any room<br/>
+ &nbsp; &nbsp;+ find out what service call is made and ensure skill is injected and skill queue is updated<br/>
+* take a look at bookmarks, there was a sql error or something when you open bookmarks window<br/>
+ &nbsp; &nbsp;- FIXED - bookmark packet seems to be only 3 items in tuple no longer 4 (index 1 was dropped)<br/>
+ &nbsp; &nbsp;- FIXED - now, i can add bokmarks, but there are more issues:<br/>
+ &nbsp; &nbsp; &nbsp;+ FIXED - bookmarks only show approach location, no warp to<br/>
+ &nbsp; &nbsp; &nbsp;+ FIXED - no bookmarks load on subsequent logins, check how they are sent to client, has packet format changed for 'GetBookmarks' ?<br/>
+* FILES: move /sql/dgmEffectsInfo.sql file into the /sql/evemu-updates folder<br/>
+ &nbsp; &nbsp;- populate with a few passive modules' effects to attributes mappings to make sure they get loaded properly by the server code<br/>
+* cannot move items into ship cargo<br/>
+* InventoryItem::AlterQuantity() seems to be using stationID for the quantity to be removed from a stack of items<br/>
+* FIXED: CRAP: somehow i screwed up something, since now a new char has nearly all skills with level 0, yet non-zero SP, and ALL items in station regardless of owner are getting loaded on login<br/>
+* MODULEEFFECTS: search for field names of 'disallowAutoRepeate' and 'isWarpStable' for the dgmEffects table and replace them with 'disallowAutoRepeat' and 'isWarpSafe', respectively<br/>
+* skill left going on timer in active server will crash server if that client owning it disconnects before skill training is complete<br/>
+ &nbsp; &nbsp;+ should also test filling a queue full of skills past the 24 hour limit, then immediately disconnect, THEN leave server running, reconnect ONLY after whole queue is expected to be finished<br/>
+* CONFIRMED - others are reporting that adding skills to queue and hitting apply is cutting their training time in half, but its working fine on my system<br/>
+ &nbsp; &nbsp;+ CONFIRMED- I switched to fresh DB and now problem occurs - use fresh DB, create new char and add skills to queue to see what happens<br/>
+* stack splitting packet is wrongly decoded, stationID is being used for quantity to remove from stack<br/>
+* item and ship stack splitting and combining is not working<br/>
+ &nbsp; &nbsp;- split item stack - FIXED<br/>
+ &nbsp; &nbsp;- split ship stack - FIXED<br/>
+ &nbsp; &nbsp;- combine item stacks - FIXED<br/>
+ &nbsp; &nbsp;- combine ship stacks - FIXED<br/>
+ &nbsp; &nbsp;+ Add, MultiAdd, MultiMerge, StackAll must all be checked for packet structure changes<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- MultiMerge() - missing stationID int in outermost tuple<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- StackAll() - seems to work fine now<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- MultiAdd() - what triggers this?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Add() - tuple: 2 integers (itemID, destInventoryID), byname.find("qty"), if last not found, use qty=1<br/>
+* Injecting skill fails: tuple0 wrong size, expected 1 but got 2<br/>
+* reported mismatch between skill training time on left side of queue and the remaining time once added to the queue<br/>
+* check skill training completion with corrected EvilNumber comparisons in Client::Process() and Character::UpdateSkillQueue() - added 20 seconds to server-side skill expiry to avoid primary problem of the ItemGetInfo being sent to cliient BEFORE the destiny update when a skill completes, it's unknown why this happens, but the server-side delay helps avoid it<br/>
+* skill injection takes place without checking character for prerequisites of the skill to be trained first before injecting the skill - EvilNumber comparison to basic type not working, had to use .get_int()<br/>
+* ERROR - jumping thru stargate - tuple0 wrong size, expected 2 but got 3<br/>
+* NO, IT'S FINE AFTER LOG-OUT THEN LOG-IN - something wrong with skills, i can GIVE all skills for an item/ship, however, when i try to train one given, it says prerequisites not trained, so check the skill give slash command<br/>
+* YES - check if we can add/remove skills in the skill queue and apply to start training them<br/>
+* Total SP calculated is incorrect as reported on the character selection screen<br/>
+* get two accounts connected a nd undocked flying around each other and check view one to the other of all space operations:<br/>
+ &nbsp; &nbsp;- OK - approach and bump<br/>
+ &nbsp; &nbsp;- OK - goto direction<br/>
+ &nbsp; &nbsp;- OK - align to<br/>
+ &nbsp; &nbsp;- OK - set speed fraction<br/>
+ &nbsp; &nbsp;- OK - warp<br/>
+ &nbsp; &nbsp;- OK - dock<br/>
+ &nbsp; &nbsp;- OK - undock<br/>
+ &nbsp; &nbsp;- OK - eject from ship<br/>
+ &nbsp; &nbsp;- OK - board ship in space - only issue is self sees old capsule when no one else does<br/>
+ &nbsp; &nbsp;- OK - warp via autopilot<br/>
+* market buy item: client exception - MarketDB::GetNewPriceHistory() needed correct types for the volume (SIGNED INTEGER) and orders (SIGNED INTEGER)<br/>
+* viewing market window yielded a DBcore query error in MarketDB::GetMarketGroups(), unknown column 'grapicID', which should be 'iconID'<br/>
+* NEED TO DO BIG PACKET CAPTURE PARTY SOON AND GET THAT CLIENT VERSION SAVED OFF IN ORDER TO SPEND MONTHS TO YEARS CONTINUING TO IMPROVE FEATURE SUPPORT FOR THAT VERSION.<br/>
+* Need new charUnboundMgr service<br/>
+* Need a web server that serves char portraits to clients as CCP's http://images.cdn1.eveonline.com, see that URL for info on how it works. &nbsp;We need our own server that acts as this one does and also allows users to submit their own avatar pictures since we cannot create the images ourselves from the new char creation info. &nbsp;One suggestion would be to create the avatar you want on a trial of eve live, then save the images and use those to upload to the evemu image server.<br/>
+* Right-click on ship yields massive exception, study it and trace to root cause<br/>
+* station items and station ships windows yield exceptions, presumably with an InventoryBound call<br/>
+* using /spawn or /create yields exception, prolly inventory issues again<br/>
+<br/>
+</body></html>

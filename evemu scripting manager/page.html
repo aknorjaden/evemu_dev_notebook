@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>EVEmu Scripting Manager</title>
+</head><body><br/>
+GOAL: To create a generic scripting engine class with support functions and API libraries using the Lua embedded interpreter allowing community members to write scripts to interact with the various components of the server code that can be extended and adapted for whatever portion of the server code that we may wish to tie scripting to: NPC AI, missions, etc<br/>
+<br/>
+*** API Service Functions ***<br/>
+&gt; Server<br/>
+&gt; Solar System (dealing with objects visible system-wide)<br/>
+&gt; Ship<br/>
+&gt; Bubble (dealing witnh objects visible within the current bubble)<br/>
+&gt; Drones<br/>
+&gt; Chat (....for the NPCs to taunt you better, c'mon!!!)<br/>
+&gt; Destiny (all things to move ships around, duh)<br/>
+&gt; <br/>
+<br/>
+*** STEPS TODO ***<br/>
+1. create a new class to contain a lua interpreter and helper and API functions with a public interface to provide the basic functions needed to work with the interpreter:<br/>
+ &nbsp; &nbsp;- Load script<br/>
+ &nbsp; &nbsp;- Stop script<br/>
+ &nbsp; &nbsp;- Execute script<br/>
+ &nbsp; &nbsp;- Load script arguments<br/>
+ &nbsp; &nbsp;- Get output values from script<br/>
+ &nbsp; &nbsp;- Connection to outside world for script logging output (TCP, evemu server console, ?)<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+</body></html>

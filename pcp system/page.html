@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>PCP System</title>
+</head><body>&gt;PCP = Player Controlled Player<br/>
+This feature does not exist on eve live so it is completely definable by us. &nbsp;Imagine you have setup a number of player accounts each with a character, a ship with a fitting and trained skills. &nbsp;These would be full-blown characters that you would each login in order to set skills and ships and fittings. &nbsp;Now, imagine you are logged into your main character and you wished to control these other characters as squadmates or wingmates using / slash commands. &nbsp;<br/>
+<br/>
+<br/>
+PREREQUISITES:<br/>
+* need to separate all eve client and packet specific calls and vars from the character control specific calls and vars in the Client class and place client specific stuff into another class so that the Client class can be extended for use with the eve client specific class or the PCP client specific class(s) used to communicate to remote thin clients or via the slash system for in-game control of pcp characters<br/>
+ &nbsp; &nbsp;+ first, create a new class CCPClient, that extends the ccp client specific class(s)<br/>
+ &nbsp; &nbsp;+ next, identify all methods in Client that make use of those parent class(s)' methods and then encapsulate them with Client-owned wrapper functions<br/>
+ &nbsp; &nbsp;+ remove inherited parent classes from Client and include CCPClient via composition and access ccp client specific methods in the new wrapper functions using that composed class<br/>
+ &nbsp; &nbsp;+ provide for a constructor variable that tells Client which specific connected external client class to be using. &nbsp;try to find ways to support a few different external client classes without having switch statements everywhere in the Client methods<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- could make a client wrapper class that includes all cleints' specific calls and encapsulate the switch statements inside those<br/>
+<br/>
+<br/>
+REQUIREMENTS:<br/>
+* Make a new chat channel exclusivly for the use of controlling the PCPs from a logged in character, make title using main char's name<br/>
+* Every PCP you want to control must be in your corporation with your controlling player<br/>
+* require authorization check on primary character for remote login and remote control of controllable characters<br/>
+* we need a table in the db that holds the list of other characters that a 'controller' character is permitted to control via the /pcp system<br/>
+ &nbsp; &nbsp;+ new table 'pcpCharacters'<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- characterID - id of char to be controlled<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- controllingCharID - id of character allowed to control this character<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- enabled - 0 if control disabled / 1 if control is enabled<br/>
+* make new API server calls that aid in setup of pcp chars and controller chars<br/>
+ &nbsp; &nbsp;+ /char/SetPcpControllable.xml.aspx?charID=x&amp;fullApiKey=x&amp;controllerCharID&amp;enablControllable=1/0<br/>
+<br/>
+<br/>
+***** LIST OF SUPPORTED COMMANDS *****<br/>
+ACCOUNT OPS:<br/>
+* /pcp login &lt;account_name&gt; &nbsp;&lt;account_password&gt; &lt;char_name&gt;<br/>
+ &nbsp; &nbsp;- if this character is already logged in by a different controlling charcter, return an error and do not allow this login attempt<br/>
+* /pcp logout &lt;char_name&gt;<br/>
+ &nbsp; &nbsp;- if this character is already logged in by a different controlling charcter, return an error and do not allow this logout attempt<br/>
+<br/>
+<br/>
+SHIP FLIGHT OPS:<br/>
+* /pcp undock &lt;char_name&gt;<br/>
+* /pcp dock &lt;char_name&gt; &lt;stationID&gt;/&lt;station_name&gt;<br/>
+* /pcp approach &lt;x,y,z&gt;|&lt;object_name&gt;|&lt;object_ID&gt;<br/>
+* /pcp align &lt;object_name&gt;|&lt;object_ID&gt;<br/>
+* /pcp orbit &lt;object_name&gt;|&lt;object_ID&gt; &lt;radius&gt;<br/>
+* /pcp warp &lt;object_name&gt;|&lt;object_ID&gt; &lt;distance&gt;<br/>
+* /pcp jump &lt;stargate_name&gt;|&lt;stargate_ID&gt;<br/>
+<br/>
+<br/>
+SHIP COMBAT OPS:<br/>
+* /pcp target lock [&lt;target_object_name&gt;|&lt;target_object_ID&gt;]<br/>
+* /pcp target unlock [&lt;target_object_name&gt;|&lt;target_object_ID&gt;]<br/>
+<br/>
+<br/>
+DRONE CONTROL OPS:<br/>
+* /pcp drone list<br/>
+* /pcp drone deploy [&lt;drone_type&gt;|&lt;drone_group&gt;]<br/>
+* /pcp drone recall<br/>
+* /pcp drone config [] [] [] []<br/>
+ &nbsp; &nbsp;- configure drone control settings<br/>
+<br/>
+<br/>
+DATA LIST QUERIES:<br/>
+* /pcp list grid<br/>
+ &nbsp; &nbsp;- list all visible objects in local grid, nearest to farthest<br/>
+* /pcp list ships<br/>
+ &nbsp; &nbsp;- list all visible ships in local grid, nearest to farthest<br/>
+* /pcp list drones<br/>
+ &nbsp; &nbsp;- list all visible drones in local grid, nearest to farthest<br/>
+* /pcp list stations<br/>
+ &nbsp; &nbsp;- list all NPC stations and player outposts in system, nearest to farthest<br/>
+* /pcp list gates<br/>
+ &nbsp; &nbsp;- list all stargates in system, nearest to farthest<br/>
+* /pcp list cans<br/>
+ &nbsp; &nbsp;- list all cargo containers in local grid, nearest to farthest<br/>
+* /pcp list asteroids<br/>
+ &nbsp; &nbsp;- list all ore and ice asteroids in local grid, nearest to farthest<br/>
+<br/>
+<br/>
+FLEET OPS:<br/>
+* /pcp joinfleet me/&lt;fleet_owner_char_name&gt; &lt;char_name&gt;<br/>
+* /pcp leavefleet &lt;char_name&gt;<br/>
+<br/>
+</body></html>

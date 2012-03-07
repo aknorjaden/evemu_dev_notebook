@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Crazy Features</title>
+</head><body>This notebook is for capturing ideas deemed crazy and fun, stuff you wished you could do on EvE Online but CCP would never allow.<br/>
+<br/>
++++ The Wormhole Drive +++<br/>
+Kinda like a stargate from the Stargate:SG1 show, where a wormhole opens up to an intended target system be it either a W-space system or a designated K-space system. &nbsp;We could hijack a current module like the jump drive and make new entries in the DB for it, then use force field password to "set" the target system by name or locus signature. &nbsp;When activated, the wormhole entry point is created, but the wormhole drive-carrying ship cannot move until the module is disengaged and the current cycle completes, but the wormhole entry point stays active until then allowing ships to come out and go in. &nbsp;When module deactivates, the wormhole drive-carrying ship has 30sec to enter wormhole before despawn. &nbsp;To make this item of strategic and tactical importance and risk balanced, make the ship have to run out a full cycle once before the wormhole opens up, so at least the ship and others are vulnerable while waiting for the first cycle to complete. &nbsp;Make the cycle time kinda long, say 1 minute or maybe 5, and use some advanced science skill to reduce the cycle time by 10% per level.<br/>
+<br/>
++++ Ship Explosions Do Damage to Nearby Ships Regardless of Friend/ Foe +++<br/>
+This would be very realistic to make ship explosions dispense damage to nearby ships, proportional to how close they are at the time of the explosion with the damage amount dropping off with distance according to the inverse square law. &nbsp;Ship capacitor amount would translate into half Thermal half EM damage along with any loaded cap booster charges and charges in cargo "selected" for destruction, ship mass would translate into kinetic damage, and loaded missiles/bombs and any missiles/bombs/jump or POS &nbsp;fuel in cargo "selected" for destruction rather than loot drop would translate into explosive damage.<br/>
+<br/>
++++ Titan SuperWeapon Area-of-Effect Damage +++<br/>
+The Titan SuperWeapons are targeted modules now, however, we want to make them do damage to nearby ships as well as the primary target. &nbsp;They do 2 million hp of damage the majority of which should be applied to the primary target, however, a good portion should be distributed to nearby ships with damage amounts applied using the radio frequency transmission energy falloff equation (inverse square law) as a function of distance away from the transmission point, such that ships very close by the primary target get hit badly, and ships at some distance away receive some damage and ships far away receive little to no damage. &nbsp;So, just to be clear, if more than one ship is in effective radius of the weapon, more than 2 million hp will most likely be dispensed since the primary target will receive random hp between 80% and 100% of the 2 million hp and that destruction wave propagates outward in all directions as a sphere, with an amount of damage dispensed to each ship between 80% and 100% of the magnitude of 2 million hp times the inverse square law's resulting fraction of damage at radius 0 as a function of the distance of each ships from radius 0, the initial impact point of the weapon. &nbsp;Titan SuperWeapon skill level should boost effective radius from a base by 5-10% per level. &nbsp;Perhaps attach a new attribute to the superweapon modules for base damage radius and attach new attribute to superweapon skills of percent increase in that radius per level.<br/>
+<br/>
++++ Reconaissance Probes and/or Drones +++<br/>
+Scan Probes and/or Drones deployed anywhere in a solar system can be left in-system even when the player leaves and can post intelligence data to a special chat channel for all, some, or each individual recon probe.<br/>
+When deployed at gates, stations, outposts, POSs, and other such places with fixed position primary structures, the recon probes will perform high speed orbiting of the emplacement around 5km/s at a radius of their deployed position relative to the fixed object's position.<br/>
+Data relayed by recon probes/drones:<br/>
+ &nbsp; &nbsp;- character name of ship pilot<br/>
+ &nbsp; &nbsp;- corp. and alliance of character<br/>
+ &nbsp; &nbsp;- ship type<br/>
+ &nbsp; &nbsp;- any gate action taken (jumping in from / jumping out to)<br/>
+ &nbsp; &nbsp;- any cloaking action<br/>
+ &nbsp; &nbsp;- any warping action, but not to where<br/>
+<br/>
+<br/>
++++ Impulse Drive like Star Trek +++<br/>
+Create the notion of an Impulse Drive inspired by Star Trek where it has speed settings and on/off via /slash commands '/impulse full/half/quarter/x%<br/>
+ &nbsp; &nbsp;- need to know how fast 'full impulse' really is in m/s<br/>
+ &nbsp; &nbsp;- will client crash when trying to run ships this fast?<br/>
+ &nbsp; &nbsp;- allow use of MWD or afterburners to increase speed on top of impulse speed setting<br/>
+ &nbsp; &nbsp;- actual full impulse speed setting should add a base full impulse speed to a ship's max sublight speed<br/>
+ &nbsp; &nbsp;- allow use of Impulse Drive ONLY on BattleCruiser ships and larger<br/>
+ &nbsp; &nbsp;- require fuel in cargo bay to use Impulse Drive and consume that fuel as the drive is used<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ what kind of fuel?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ how much fuel per 1/10/30/? seconds is consumed?<br/>
+ &nbsp; &nbsp;- how does this drive react to warp inhibitors, scramblers, disruptors, and webifiers?<br/>
+<br/>
+<br/>
++++ Orbiting Cruise engines to move around planets after a warp to a planet/moon +++<br/>
+When warping to a planet/moon/star, set destination coordinates to ther point on the sphere at altitude that faces the current ship position<br/>
+ &nbsp; &nbsp;- calculate final position on planet/moon/star orbit after warp in using origin point, desired destination point and planet/moon/star default orbit altitude, then proceed as described below:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;1. determine if desired destination point is 'behind' the planet such that the ship's warp vector from the point of origin would take it through the perpendicular circle formed by the plane/moon/star center point and its radius plus some buffer. &nbsp;if not, allow warp directly to desired destination point, otherwise, compute the final position on the orbit sphere<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- determine if vector will take ship through planet if TBD<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- distance traveled will equal TBD<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;2. compute the final position of the ship on the planet/moon/star orbit sphere<br/>
+ &nbsp; &nbsp;- ships will enter orbit at different points on the sphere centered on the planet/moon center at fixed altitude, so they will have to have the ability to engage special 'orbiting cruise' engine power, 200,000m/s plus max sublight ship speed (MWD and afterburners add to this speed post- addition of 200,000m/s). &nbsp;they would first double click in space in the direction of desired orbit then select to orbit the planet/moon (if not an option, consider another client gui action to accomplish this) and the 'orbiting cruise' engine power would engage increasing speed so as to orbit around planet/moon/star to reach other locations, be they stations, POSs, cargo can areas, or even asteroid belts<br/>
+* on BeyonceService::Handle_Orbit() call, check orbiting target for star, planet, or moon and if any of those check out, call DestinyManager::OrbitCelestial() instead of Orbit()<br/>
+* DestinyManager: create new public function OrbitCelestial() that will take current altitude from celestial as the orbit radius and current heading (if any) or random one if ship is stationary, and project that onto the orbiting sphere to begin orbital maneuvers. &nbsp;ship's maximum sublight velocity must be temporarily increased to 200,000m/s while performing orbital maneuvers<br/>
+<br/>
+<br/>
+<br/>
++++ POS installations can be placed anywhere in orbit of star/moon/planet +++<br/>
++++ POS installations placed in orbit of a star do not show up on probe scans +++<br/>
++++ POS installations placed in orbit of a star show up on directional scan within proximity of 500km<br/>
+* POS at a star...<br/>
+ &nbsp; &nbsp;+ increased fuel requirements for shield due to close proximity to star's corona<br/>
+ &nbsp; &nbsp;+ star's corona penalizes accuracy of all turrets<br/>
+ &nbsp; &nbsp;+ solar flare erruptions will happen randomly that will have these effects in the local area:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- all target locks will suffer random target lock disruption<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- all ships' shields will suffer random hits to them coincident w/ target lock disruptions<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- all drones controlled by a ship hit with these random flares will also 'reboot' to 'idle', the ship does not lose control of them, however, they lose thier target locks, go to passive mode and stop dead in space staying that way until the ship pilot sets them to a target again<br/>
+<br/>
+<br/>
+</body></html>

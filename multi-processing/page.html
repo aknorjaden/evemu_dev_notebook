@@ -1,0 +1,19 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Multi-Processing</title>
+</head><body>*** EVEMU IS A SINGLE PROCESS WITH NO MULTI-THREADING ***<br/>
+*** HOW DO WE FIX THIS ??? ***<br/>
+<br/>
+*** IDEAS ***<br/>
+* spawn eve-server.exe for each solar system? each region?<br/>
+ &nbsp; &nbsp;- how does each process communicate with another that it needs to? some connection router process?<br/>
+ &nbsp; &nbsp;- how do data structures get passed to other instances? &nbsp;for whole characters when they jump?<br/>
+ &nbsp; &nbsp;- how do chats span across multiple instances when characters span the galaxy?<br/>
+* spawn eve-server.exe to serve different functions, api-only server, char image-only server, full single server, non-api and non-image server, etc<br/>
+<br/>
+*** INTER-PROCESS COMMUNICATION (ICP) ***<br/>
+* use cross platform standard library for Internet sockets so that multiple processes can communicate regardless if they are on they same machine or are separated by an ethernet connection<br/>
+<br/>
+</body></html>
