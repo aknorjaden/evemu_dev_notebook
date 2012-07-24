@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>MM Done Tasks</title>
+</head><body><br/>
+*** DONE ***<br/>
+* CHECK: NO - do the dgmEffectsInfo and dgmEffectActions load entire table into a singleton object or only selections into each item type instance?<br/>
+ &nbsp; &nbsp;- YES - DONE - should there be a singleton for each of these tables (and the new one below) that each item type instance should just build a map of pointers to objects inside the singleton's map<br/>
+* CHECK: NO do the dgmAttributes and dgmTypeAttributes also get loaded into singleton objects?<br/>
+ &nbsp; &nbsp;- YES - should they?<br/>
+ &nbsp; &nbsp;- UPDATED TO SINGLETONS<br/>
+* CANCELLED - IMPLEMENT: we need new DB table for storing info on how ship, module, or charge bonuses get applied to themselves and/or modules and/or ships based on applicable skill levels<br/>
+ &nbsp; &nbsp;- NOTE: this table is NOT for storage of &nbsp;effects modifiers of modules that go into effect<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; in only certain module states.<br/>
+ &nbsp; &nbsp;- QUESTION: do any modules have such modifiers? &nbsp; NO<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- skills - NO: skills have these effects too, but no reference for what skillID is tied to each bonus<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- ships - NO: ships have effects and attributes fvor their bonuses and should have those<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;tracked in dmEffectsInfo and dgmEffectsActions<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- subsystems - NO: subsystems have effects to track these bonus modifiers<br/>
+ &nbsp; &nbsp;- dgmTypeAttributeModifiers<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ typeID - key (unique)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ skillID - the skill used to adjust modifier amount (0 means this is a ship role bonus)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - also secondary key, since each type most likely has multiple bonus modifiers<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ targetEquipmentID - a code indicating whether the target is a module, charge, this ship, drone,<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;external ship, external ship's module, external ship's charge (really?)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ targetGroupID - groupID of the item the attribute of which is to be modified<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Q. &nbsp;Will a single groupID work for a charge being modified?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- perhaps this field should be a string with a comma separated list of groupIDs<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- YES: database field will be text, but class var will be std::vector&lt;uint32&gt;<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ targetAttributeID - the attribute being modified<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ modifierValue - the actual bonus/penalty to be applied to the target attribute<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ calculationTypeID<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ reverseCalculationTypeID<br/>
+* YES - CHECK: in dgmEffectsInfo, does each effect have a nullify_on_active column where if this was set, it tells the server code to reverse this effect upon entering the ACTIVATED state?<br/>
+ &nbsp; &nbsp;- if not, add it to each effect row<br/>
+* ISSUE: Turrets fitting to ship cause it to disappear on undock as well as server restart<br/>
+ &nbsp; &nbsp;- DONE, THEY WORK IN AND OUT OF STATION - RE-TEST THIS ON CRUCIBLE 1.6.5<br/>
+ &nbsp; &nbsp;- DONE - PULL DaVinci's legs and arms to get his source changes that he said fixed this issue<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ MADE TURRETS VISIBLE - dbcore.cpp - DaVinci changed the use of WSTR to STR for db<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; field types<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- turrets still NOT visible in space<br/>
+* YES - DONE - Do we have code that tracks the number of modules fitted by groupID? &nbsp;If so, do we also have accessor functions that will allow external classes to query the count of a particular groupID for total number of modules fitted? &nbsp;Think 'stacking penalties' ;)<br/>
+* YES - can we somehow do direct linking of individual source files on our github repos so we can use those direct url links in our wiki documentation?<br/>
+* DONE - ModuleEffects: m_SelectedEffect and m_DefaultEffect need to both be set by some method, or do they really? &nbsp;why is default effect needed? &nbsp;we should apply all effects with the module state assigned that matches the current module's actual state (online, activated, overloaded). &nbsp;by this definition, the selected effect is not even needed<br/>
+ &nbsp; &nbsp;+ DONE - remove use of selectedeffect and default effect<br/>
+ &nbsp; &nbsp;+ DONE - ModuleEffects class should have three arrays of effects: OnlineEffects, ActivateEffects,<br/>
+ &nbsp; &nbsp; &nbsp; and OverloadEffects, so that when the Module class' state method (Online, Activate, Overload)<br/>
+ &nbsp; &nbsp; &nbsp; calls the effect class' ProcessEffects() method passing in the module's state code it then only<br/>
+ &nbsp; &nbsp; &nbsp; processes those effects in the array matching the passed-in module state<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE - std::map&lt;uint32, MEffect *&gt; m_OnlineEffects<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ DONE - fill from effect's data loaded from dgmEffectsInfo table<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ DONE - fill from effect's data loaded from dgmEffectsActions table<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE - std::map&lt;uint32, MEffect *&gt; m_ActiveEffects<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ DONE - fill from effect's data loaded from dgmEffectsInfo table<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ DONE - fill from effect's data loaded from dgmEffectsActions table<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE - std::map&lt;uint32, MEffect *&gt; m_OverloadEffects<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ DONE - fill from effect's data loaded from dgmEffectsInfo table<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ DONE - fill from effect's data loaded from dgmEffectsActions table<br/>
+ &nbsp; &nbsp;+ DONE - move all GetXXXX() accessor methods to MEffect class<br/>
+ &nbsp; &nbsp;+ DONE - NEW: ModuleEffects::GetOnlineEffectsConstIterator()<br/>
+ &nbsp; &nbsp;+ DONE - NEW: ModuleEffects::GetActiveEffectsConstIterator()<br/>
+ &nbsp; &nbsp;+ DONE - NEW: ModuleEffects::GetOverloadEffectsConstIterator()<br/>
+ &nbsp; &nbsp;+ DONE - finish integration of the three new containers into ModuleEffects such that they get<br/>
+ &nbsp; &nbsp; &nbsp; populated properly with MEffect objects according to module state in which they apply<br/>
+* FIXED - 5 attributes cannot be found when loading ships from DB that were previously spawned because Ship::Ship() constructor does 'new ModuleManager(this)', which then inside ModuleManager's constructor does 'new ModuleContainer where the attributes are loaded for an existing ship, not where a ship is created/spawned in-station and in space, verify these 5 errors are gone<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ observe on char login to game that no ship being loaded from DB shows these errors<br/>
+* DONE - does any part of the flow for fitting a module check to see if there is already a module fitted to the slot the current module is trying to go into? &nbsp;check for a module in inventory with a matching flag value, if so, refuse to fit the module<br/>
+ &nbsp; &nbsp;+ DONE - error packet isolated and filled into UserError() Py class<br/>
+ &nbsp; &nbsp;+ DONE - need ModuleManager call IsSlotOccupied() to be made and to query ModuleContainer<br/>
+ &nbsp; &nbsp;+ DONE - need to test implementation<br/>
+* NON-ISSUE - EVE LIVE BEHAVES THE SAME WAY: With the new max fitted checks, the server will not allow a module across slots if the max of that module type is fitted already. &nbsp;Check eve live to see if you can do that.<br/>
+ &nbsp; &nbsp;+ if a check of that item's ID on the slot bank that it belongs to reveals that module is already<br/>
+ &nbsp; &nbsp; &nbsp; fitted to thisw ship, then bypass the check error and be sure to do a MOVE of said ;odule<br/>
+ &nbsp; &nbsp;+ NEW: ModuleContainer::MoveModule(itemID, newFlag) - this is called in ModuleManager when<br/>
+ &nbsp; &nbsp; &nbsp; a module is being fitted to a slot but this module is already fitted to a different slot<br/>
+* DONE - EXPAND: Make ActiveModules class not crash server when ModuleFactory instantiates it<br/>
+* DONE - need a couple variables maintained by ModuleManager, perhaps in ModuleContainer? that keep track of the number of high power slot modules that are turrets fitted to the ship and the number of missile launchers fitted to the ship<br/>
+ &nbsp; &nbsp;+ NEW: GenericModule::isLauncherFitted() and check for presence of effectID 40 on the module<br/>
+ &nbsp; &nbsp;+ NEW: GenericModule::isTurretFitted() and check for presence of effectID 42 on the module<br/>
+ &nbsp; &nbsp;+ NEW: GenericModule::isMaxGroupFitLimited() and check for presence of attributeID 1544<br/>
+ &nbsp; &nbsp; &nbsp; on the module<br/>
+ &nbsp; + NEW: Ship::GetMaxTurretHardpoints()<br/>
+ &nbsp; &nbsp;+ ModuleContainer queries the module class, once created, for either kind of weapon type,<br/>
+ &nbsp; &nbsp;+ NEW: Ship::GetMaxLauncherHardpoints()<br/>
+ &nbsp; &nbsp; &nbsp; then checks its own current count of that type already fitted against the maximum allowed<br/>
+ &nbsp; &nbsp; &nbsp; on the current ship, then either proceeds with fitting or thows UserError class exception<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ packet log eve live to discorver this user errors:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- insufficient turret hardpoints<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- insufficient launcher hardpoints<br/>
+* DONE - do we have GetModule() functions by flag and itemID in the ModuleManager?<br/>
+* DONE - Get rid of all _unnecessary_ private member functions with '_' prefix in ModuleManager and ModuleContainer classes, rolling them into fewer larger functions<br/>
+* DONE - INVESTIGATE: Do Charges and Drones also have effects?<br/>
+ &nbsp; &nbsp;+ Charges have effects<br/>
+ &nbsp; &nbsp;+ Drones have effects, though mosly just one<br/>
+* DONE - Make ABSOLUTELY sure that when a module is removed from one of the arrays that ModuleContainer manages, that it returns the pointer value at that element to NULL<br/>
+* DONE - need to populate dgmEffectsInfo table with effects for 1600mm tungsten plates, then ensure it is properly loaded into the effects classes<br/>
+* DONE - make call to Character::SaveSkillQueue() inside Character::SaveCharacter()<br/>
+ &nbsp; &nbsp;- adjust Client destructor accordingly, and make call to the new Client::SaveAllToDatabase()<br/>
+* DONE - NEEDS TESTING - Module attributes are NOT being saved to the database at all<br/>
+ &nbsp; &nbsp;- Client::SaveAllToDatabase()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ GetChar()-&gt;SaveCharacter()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ GetShip()-&gt;SaveShip()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- moduleManager-&gt;SaveModules()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ moduleContainer()-&gt;SaveModules()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- loop through each bank of module slot arrays calling GenericModule::SaveModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; on each Module object<br/>
+ &nbsp; &nbsp;* find out when a save of attributes and inventory of ship and modules should take place<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE - log off / disconnect<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE - docking into station / outpost<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- undocking from station / outpost (is this a good idea? &nbsp;put call in, it can always be removed)<br/>
+ &nbsp; &nbsp;* find out what method(s) to call to save module attributes (loop through module container arrays), ship inventory and ship attributes and where they should be called<br/>
+* DONE - remove extra 'SubEffect::' from SubEffect class definition (5 places) in ModuleManager.h and then close issue on gihub once source builds fine<br/>
+* DONE - MODULEMANAGER.CPP:<br/>
+* API SERVER: DONE - Make sure that in APIAccountManager that the APIKeyRequest handler is:<br/>
+ &nbsp; &nbsp;- looking for the 'action' key/value pair field and if value= 'new', regenerate only the key specified, otherwise, expect the value= 'get', in which case return existing key value<br/>
+ &nbsp; &nbsp;- ONLY regenerate the key specified by keytype<br/>
+ &nbsp; &nbsp;- FIXED - ModuleManager should NOT maintain its own ref to the 'operator' object, such as client or NPC, but rather, call a function GetShipOperator() on the Ship (owner of the MM instance) which returns the reference to the ShipOperatorInterface object owned by Ship<br/>
+ &nbsp; &nbsp;- DONE - adjust use of m_client in the code such that when NPC ships with no client object are instantiating and using the MM, it does not crash the server trying to access a non-existent Client object since the pointer will be NULL.<br/>
+* DONE - SHIP.CPP: &nbsp;adjust use of m_client in the code such that when NPC ships with no client object are spawning ship objects, it does not crash the server trying to access a non-existent Client object since the pointer will be NULL.<br/>
+ &nbsp; &nbsp;- Ship.h: &nbsp;consider another ref to the NPC object that owns this Ship, set via a new constructor<br/>
+ &nbsp; &nbsp;- Ship::ValidateAddItem() - no check for skills, just add item!<br/>
+ &nbsp; &nbsp;- Ship::AddItem() - get location id from NPC ref if client ref is NULL<br/>
+ &nbsp; &nbsp;- Ship::RemoveItem() - use NPC ref when Client ref is NULL<br/>
+ &nbsp; &nbsp;- Ship::RemoveRig() - use NPC ref when Client ref is NULL<br/>
+ &nbsp; &nbsp;- Ship::SetOwner() - create another overload of this that takes NPC object ref and sets Client ref to NULL while setting internal NPC ref to ref passed in<br/>
+* DONE - ShipOperatorInterface needs a destructor, set all pointers to NULL inside<br/>
+* DONE - insert ShipOperatorInterface into Ship class va composition, and set its internal pointers according to the owner object calling the SetClient(Client *), SetNPC(NPC *), or SetPCP(PCP *)<br/>
+* DONE - write a public GetOperatorInetrface() so that destiny and ModuleManager can use its functions to make calls on the operator class<br/>
+* DONE - make use of the interface object inside of Ship and ModuleManager classes instead of direct pointer to Client class object<br/>
+* merge Luck's evemu_incursion_mm branch into evemu_incursion main codeline<br/>
+</body></html>

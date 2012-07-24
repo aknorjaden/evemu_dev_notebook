@@ -2,13 +2,13 @@
 <node>
 <version>3</version>
 <attr key="title">Ships</attr>
-<attr key="expanded">0</attr>
+<attr key="expanded">1</attr>
 <attr key="nodeid">67eea285-b7ba-4a5b-8fd2-8cbb96263fa1</attr>
 <attr key="modified_time">1304211634</attr>
 <attr key="expanded2">0</attr>
 <attr key="content_type">text/xhtml+xml</attr>
 <attr key="created_time">1299177999</attr>
 <attr key="info_sort_dir">1</attr>
-<attr key="order">3</attr>
+<attr key="order">4</attr>
 <attr key="info_sort">order</attr>
 </node>

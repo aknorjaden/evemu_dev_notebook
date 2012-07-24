@@ -1,0 +1,20 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>NPC AI</title>
+</head><body><br/>
+*** NPC AI ALGORITHMS ***<br/>
+<br/>
+* Basic AI:<br/>
+(1) request list of targets in current bubble<br/>
+ &nbsp; &nbsp;- list of entityIDs and distance to NPC fleet commander operating the AI script<br/>
+(2) filter targets by distance to get subset of targets in-range<br/>
+(3) choose a target, wait 15sec, then order NPC fleet to engage the selected target<br/>
+ &nbsp; &nbsp; if targeting unsuccessul, then order ships to move into range and engage<br/>
+(4) when target is destroyed, go to step (1)<br/>
+--- Requirements from Lua class for bound functions C++ --&gt; Lua and Lua --&gt; C++<br/>
+- Call OUT to C++ RequestTargetList() - returns array of entityID(int), distance(real) INTO Lua environment<br/>
+- Call OUT to C++ EngageTarget(int entityID)<br/>
+<br/>
+</body></html>

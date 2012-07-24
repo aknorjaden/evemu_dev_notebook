@@ -204,26 +204,30 @@ RECEIVE:<br/>
 &lt;/eveapi&gt;<br/>
 <br/>
 <br/>
-*** REQUEST NEW API KEY AND SEND BACK EXISTING USER ID ***<br/>
+*** ??? ***<br/>
 SERVICE MANAGER: &nbsp;???<br/>
-URI: &nbsp;/???/???.xml.aspx<br/>
+<br/>
+CLIENT TRANSMISSION:<br/>
+URI: &nbsp;/???/API???.xml.aspx<br/>
  &nbsp; &nbsp;parameters<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- ???<br/>
 <br/>
-RECEIVE:<br/>
-&lt;eveapi versiom="2"&gt;<br/>
+SERVER RESPONSE:<br/>
+&lt;eveapi version="2"&gt;<br/>
  &nbsp;&lt;currentTime&gt;2011-01-01 00:00:00&lt;/currentTime&gt;<br/>
  &nbsp;???<br/>
  &nbsp;&lt;expiresOn&gt;2011-06-01 00:00:00&lt;/expiresOn&gt;<br/>
 &lt;/eveapi&gt;<br/>
 <br/>
 <br/>
-SERVICE MANAGER: &nbsp;account<br/>
+*** REQUEST NEW API KEY AND SEND BACK EXISTING USER ID ***<br/>
+SERVICE MANAGER: &nbsp;APIAccountService<br/>
 URI: &nbsp;/account/APIKeyRequest.xml.aspx<br/>
  &nbsp; &nbsp;parameters<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- username : your eveonline account username<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- password : your eveonline account password<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- keyType : "limited", "full"<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- keytype : "limited", "full"<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- action : "new", "get"<br/>
 <br/>
 RECEIVE:<br/>
 &lt;eveapi versiom="2"&gt;<br/>

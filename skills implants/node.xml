@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node>
 <version>3</version>
-<attr key="title">POS Manager</attr>
+<attr key="title">Skills Implants</attr>
 <attr key="expanded">1</attr>
-<attr key="nodeid">ff3fa654-ed45-458c-a0ba-37e1a7bd0280</attr>
-<attr key="modified_time">1305865583</attr>
+<attr key="nodeid">58037f05-73a6-4d2a-a15b-da57149437a5</attr>
+<attr key="modified_time">1331303822</attr>
 <attr key="expanded2">0</attr>
 <attr key="content_type">text/xhtml+xml</attr>
-<attr key="created_time">1305846869</attr>
+<attr key="created_time">1331265731</attr>
 <attr key="info_sort_dir">1</attr>
-<attr key="order">8</attr>
+<attr key="order">9</attr>
 <attr key="info_sort">order</attr>
 </node>

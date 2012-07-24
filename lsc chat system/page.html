@@ -3,10 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>LSC Chat System</title>
-</head><body>>*** PROBLEMS ***<br/>
+</head><body>&gt;*** PROBLEMS ***<br/>
 * For some reason, when a user-created channel is created, only super-admin/GM players can chat in them, normal players cannot. &nbsp;I suspect it has to do with a permissions thingy as the client probably thinks that the channel will no allow anyone to chat in it.<br/>
 * LSCService::Handle_Configure()<br/>
  &nbsp;- This handles setting ALL channel settings, permissions, moderators, MoTD, etc<br/>
+<br/>
+* INCURSION: when 2nd 3rd, etc chars login, all other chars in station guests, local, and chat channels have no name. &nbsp;we traced this to the fact that the response packet sent by the JoinChannels call is quite different<br/>
 <br/>
 <br/>
 *** TESTING ***<br/>
@@ -14,4 +16,4 @@
 <br/>
 *** FIXED ***<br/>
 <br/>
-</span></body></html>
+</body></html>

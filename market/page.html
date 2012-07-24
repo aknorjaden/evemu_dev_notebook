@@ -1,0 +1,34 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Market</title>
+</head><body><br/>
+***** EVEmu Market System *****<br/>
+<br/>
+GOAL: To create a memory based system by which players interact in the market space, not involving the MySQL Database at all, but within which, periodic "save actions" occur to preserve the market transactions in the event of a server crash or loss of power<br/>
+<br/>
+IDEAS:<br/>
+- create a set of classes that load entire market table, per region of course, from the MySQL database into memory objects, then ALL market transactions performed by players will the server is up occur on thses memory objects and NOT on the database.<br/>
+ &nbsp; &nbsp;- need new classes to hold table data by region<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- EVE_Market_Table : public Singleton<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- contains a single std::map&lt;uint32 regionID, EVE_Market_Region *&gt; that holds pointers to<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; other class objects that each hold std::map structures to hold market orders for each region<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- EVE_Market_Region<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- contains a bunch of std::map&lt;uint32 ?, EVE_Market_Order *&gt; containing all market orders for<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; a single region<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ fields used as keys in their own maps:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- price<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- jumps away<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- ???<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- EVE_Market_Order<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- a class containing all data fields pertaining to a single market buy or sell order<br/>
+<br/>
+ &nbsp; &nbsp;- Need to somehow update the changed market orders back to the database<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- We need a flag value that can be marked 'normal' or 'unchanged' when a market order is freshly<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; loaded from the database. &nbsp;When a market order is completed (deleted), it is marked 'delete',<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; when a market order is added, it is marked 'add', and when a market order is changed,<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; it is marked 'update'<br/>
+<br/>
+<br/>
+</body></html>

@@ -22,8 +22,6 @@ CLASS ModuleAction - this class is a message container that can hold info about 
 class ModuleAction<br/>
  &nbsp;friend ModuleActionInterface<br/>
 public<br/>
- &nbsp;+ bool IsThereAnAggressor()<br/>
- &nbsp;+ SystemEntity * GetAggressor()<br/>
  &nbsp;+ bool IsThereGfxPacket()<br/>
  &nbsp;+ PyTuple * GetGfxPacket()<br/>
  &nbsp;+ bool AreMyShipAttributesModified()<br/>
@@ -49,11 +47,10 @@ public<br/>
  &nbsp;+ AttrMap * GetMiningLinkBonusesMap()<br/>
  &nbsp;+ bool IsCynoLit()<br/>
  &nbsp;+ uint32 GetCynoType()<br/>
- &nbsp;+ bool IsJumpPortalActiveated()<br/>
+ &nbsp;+ bool IsJumpPortalActivated()<br/>
  &nbsp;+ uint32 GetJumpPortalType()<br/>
 ----<br/>
 protected<br/>
- &nbsp;+ void _SetAggressor(SystemEntityRef aggressorEntity)<br/>
  &nbsp;+ void _SetGfxPacket(PyTuple *pGfxPacket)<br/>
  &nbsp;+ void _SetOverloadSlotDamage(uint32 slotOffset, double heatDamage)<br/>
  &nbsp;+ void _SetShipCloaked()<br/>
@@ -99,7 +96,6 @@ private<br/>
 class ModuleActionInterface<br/>
 public<br/>
  &nbsp;+ void AttachToObject(ModuleAction * pModuleAction)<br/>
- &nbsp;+ void SetAggressor(SystemEntityRef aggressorEntity)<br/>
  &nbsp;+ void SetGfxPacket(PyTuple *pGfxPacket)<br/>
  &nbsp;+ void SetOverloadSlotDamage(uint32 slotOffset, double heatDamage)<br/>
  &nbsp;+ void SetShipCloaked()<br/>
@@ -161,7 +157,7 @@ GenericModule &nbsp;// this is THE base class, it will contain virtual abstract 
  &nbsp;+ ActiveModule<br/>
  &nbsp;+ ChargedModule<br/>
  &nbsp;+ TargetedChargedModule<br/>
- &nbsp;+ ChargedTargetedLauncherModule &nbsp;// these do not launch destiny objects<br/>
+ &nbsp;+ ChargedTargetedLauncherModule &nbsp;// these launch destiny objects (missiles) at destiny targets<br/>
  &nbsp;+ TargetedModule<br/>
  &nbsp;+ ChargedLauncherModule &nbsp;// these launch destiny objects: bombs, dictor sheres, probes<br/>
  &nbsp;+ RigModule<br/>

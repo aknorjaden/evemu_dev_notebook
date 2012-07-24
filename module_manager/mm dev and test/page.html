@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>MM Dev and Test</title>
+</head><body><br/>
+*** TEST &amp; DEVELOPMENT PLAN ***<br/>
+* INITIAL PEREPARATION: Procure one module from each group and attempt each module action with each one as you progress through this Plan.<br/>
+ &nbsp; &nbsp;+ Create a page on wiki for Module Support containing a table with each module group on its own row and each module action on the columns, then fill in the status of the action being supported for each module and update as work progresses<br/>
+* DOCUMENT brief descriptions of the program flow for all actions and methods and flow paths in the code<br/>
+* CLASS SUPPORT: review entire list of module groups and determine if they all have classes in the new MM framework for them. If any do not then make those classes and don't worry about including all components via composition right now, that can come later as actions begin to be implemented<br/>
+* FITTING: Ensure all modules can be fitted<br/>
+ &nbsp; &nbsp;0. CODE WALKTHROUGH: breakpoint in InventoryBound::Handle_Add() and step through code when a module is fitted to a slot on the ship. &nbsp;This will familiarize you with the code that handles fitting. &nbsp;Note ANY areas for improvement or bug fixes.<br/>
+ &nbsp; &nbsp;1. first step is to allow all modules to be fitted to their bank, no skill or max checks at all; the only check should be if the slot is occupied checked using the module's flag, encodes slot # &amp; bank<br/>
+ &nbsp; &nbsp;2. implement skill prerequisites check to verify fitting may proceed<br/>
+ &nbsp; &nbsp;3. implement checks on max # of modules of given group that can be fitted<br/>
+* Verify that Onlining is automatically invoked by the client when fitting sends success packet or w/e &nbsp; &nbsp;1. first step is to allow all modules to be fitted to their bank, no skill or max checks at all; the only check should be if the slot is occupied checked using the module's flag, encodes slot # &amp; bank<br/>
+* UNFITTING: Ensure modules can be unfitted to either ship cargo or station items<br/>
+ &nbsp; &nbsp;+ ensure that cargo available space of destination inventory is being checked and enforced via rejection of unfitting of module and an error message to the client<br/>
+* ONLINING / OFFLINING: Ensure modules can be placed online and taken offline<br/>
+ &nbsp; &nbsp;1. implement checks and changes to CPU and Power when modules are onlined/offlined<br/>
+ &nbsp; &nbsp;2. implement enforcement of max # of same-group modules that can be onlined<br/>
+ &nbsp; &nbsp;3. implement module online effects one by one (this can be done in parallel with further work)<br/>
+ &nbsp; &nbsp;4. implement checks on max # of modules of given group that can be onlined<br/>
+ &nbsp; &nbsp;5. imprrove upon eve live and do not apply capacitor penalty when onlining modules when the ship is in space<br/>
+* SKILLS IMPACT:<br/>
+ &nbsp; &nbsp;1. Implement bonus modifiers based on skill levels, but how to do this and still retain the base ship attributes before skill bonuses? &nbsp;Likewise for module attributes with and without skill bonus modifiers?<br/>
+* ACTIVATE<br/>
+ &nbsp; &nbsp;1. Implement basics to just cause client to show module as active and cycling, if applicable<br/>
+ &nbsp; &nbsp;2. Implement cycle timer in Module component using actual attributes<br/>
+ &nbsp; &nbsp;?. implement skill modifiers to:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ cycle time<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ reactivation delay<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ capacitor need<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ reactivation delay not yet expired<br/>
+* DEACTIVATION:<br/>
+ &nbsp; &nbsp;1. Implement basics to just show module as deactivating then deactivate, no checks, just do it<br/>
+ &nbsp; &nbsp;2. implement checks for expiration of cycle timer and queue deactivation for when cycle timer expires, respond with accepting deactivate request and put module into 'deactivating' state<br/>
+*** ADVANCED ***<br/>
+* MULTI-FIT PENALTIES:<br/>
+ &nbsp; &nbsp;- TBD<br/>
+* OVERLOADING:<br/>
+ &nbsp; &nbsp;- TBD<br/>
+<br/>
+<br/>
+* TEST AND MARK PROBLEMS WITH:<br/>
+(breakpoint in handler and step through code to learn/verify operations)<br/>
+ &nbsp; &nbsp;- fitting a module<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ nearly all modules are NOT supported in ModuleFactory, results in NULL pointer deref.<br/>
+ &nbsp; &nbsp;- unfitting a module<br/>
+ &nbsp; &nbsp;- onlining a module<br/>
+ &nbsp; &nbsp;- offlining a module<br/>
+ &nbsp; &nbsp;- loading charges into a module<br/>
+ &nbsp; &nbsp;- unloading charges from a module<br/>
+ &nbsp; &nbsp;- repairing a damages module<br/>
+ &nbsp; &nbsp;------------------------------------<br/>
+ &nbsp; &nbsp;+++ Handlers:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ InventoryBound::Add()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ DogmaIMBound::Activate()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ DogmaIMBound::Deactivate()<br/>
+<br/>
+* move ModuleContainer into its own file set .h/.cpp<br/>
+<br/>
+* build the other Component classes needed for Moodule classes<br/>
+ &nbsp; &nbsp;- ModuleActiveComponent<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Active Process loop - finish this<br/>
+ &nbsp; &nbsp;- ModuleGraphicsComponent<br/>
+ &nbsp; &nbsp;- ModuleTargetingComponent<br/>
+ &nbsp; &nbsp;- ModuleLauncherComponent<br/>
+<br/>
+* Is the framework in place for loading all fitted modules and their onlined/offlined state from the DB tables? &nbsp;What needs to be done to make that work?<br/>
+<br/>
+* change stacking penalty tracking container to track groupID, not typeID<br/>
+<br/>
+<br/>
+<br/>
+*** TECH 3 Ships ***<br/>
+ &nbsp; &nbsp;- DONE - Assembly/boarding requires all 5 subsystem types to be fitted to ship prior to boarding and should be done during assembly<br/>
+ &nbsp; &nbsp;- DONE - Upon assembly, we need to add subsystems to the ship's inventory using the flags that indicate which subsystem slot they are meant to be placed into.<br/>
+ &nbsp; &nbsp;- WORKS w/ ERROR - boarding and activating a modular ship does cause exceptions, and seems to not show any item or ship window inventory <br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- an exception is generated which probably leads to an error upon undocking because the ship is invisible out in space<br/>
+ &nbsp; &nbsp;- The ModuleManager needs to modify the ship's slot configuration when subsystems are added/removed to/from the ship. &nbsp;When a subsystem is removed, only modules in the highest slots of high, medium, and low slot sets are unfitted and placed in station items if the subsystem had added a slot or two to the sets. &nbsp;Rigs should not be touched. &nbsp;Standard slot modules that are removed should be placed into the players station items window.<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ should we allow and check condiions for subsystem swapping while in space near a Ship<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Maintenance Array? &nbsp;In this case, sufficient cargo bay capacity must be available to hold<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; all unfitted modules as a result of the subsystem swap.<br/>
+<br/>
+<br/>
+<br/>
+</body></html>

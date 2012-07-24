@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node>
 <version>3</version>
-<attr key="title">Module Manager</attr>
+<attr key="title">NPC AI</attr>
 <attr key="expanded">0</attr>
-<attr key="nodeid">5d32fe09-1956-4722-946a-ce842f0f7383</attr>
-<attr key="modified_time">1338190278</attr>
+<attr key="nodeid">c319cad2-8448-467c-bc31-00cbfa01bfb3</attr>
+<attr key="modified_time">1336423078</attr>
 <attr key="expanded2">0</attr>
 <attr key="content_type">text/xhtml+xml</attr>
-<attr key="created_time">1299178403</attr>
+<attr key="created_time">1336396895</attr>
 <attr key="info_sort_dir">1</attr>
-<attr key="order">0</attr>
+<attr key="order">1</attr>
 <attr key="info_sort">order</attr>
 </node>

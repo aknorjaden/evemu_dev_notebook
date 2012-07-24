@@ -2,13 +2,13 @@
 <node>
 <version>3</version>
 <attr key="title">Standings System</attr>
-<attr key="expanded">0</attr>
+<attr key="expanded">1</attr>
 <attr key="nodeid">5874d4e4-e47e-4fdc-a874-a68a30d9cef7</attr>
 <attr key="modified_time">1322397209</attr>
 <attr key="expanded2">0</attr>
 <attr key="content_type">text/xhtml+xml</attr>
 <attr key="created_time">1320853543</attr>
 <attr key="info_sort_dir">1</attr>
-<attr key="order">5</attr>
+<attr key="order">13</attr>
 <attr key="info_sort">order</attr>
 </node>

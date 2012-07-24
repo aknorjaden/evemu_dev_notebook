@@ -14,7 +14,8 @@ GOAL: To create a generic scripting engine class with support functions and API 
 &gt; Drones<br/>
 &gt; Chat (....for the NPCs to taunt you better, c'mon!!!)<br/>
 &gt; Destiny (all things to move ships around, duh)<br/>
-&gt; <br/>
+&gt; ModuleManager (to interact with modules fitted to a ship under control of the script)<br/>
+<br/>
 <br/>
 *** STEPS TODO ***<br/>
 1. create a new class to contain a lua interpreter and helper and API functions with a public interface to provide the basic functions needed to work with the interpreter:<br/>
@@ -25,6 +26,129 @@ GOAL: To create a generic scripting engine class with support functions and API 
  &nbsp; &nbsp;- Get output values from script<br/>
  &nbsp; &nbsp;- Connection to outside world for script logging output (TCP, evemu server console, ?)<br/>
 <br/>
+* design a generic class wrapper containing a Lua embedded interpreter and some standard functions used to work with the interpreter and allow tieing into lua with c++ functions and getting output from lua scripts<br/>
+<br/>
+<br/>
+* Lua wrapper class and Thread class psuedocode:<br/>
+- REQUIREMENTS:<br/>
+ &nbsp; &nbsp;- *must know script path<br/>
+ &nbsp; &nbsp;- *must know script name<br/>
+ &nbsp; &nbsp;- *must know thread name<br/>
+ &nbsp; &nbsp;- *must know log file path<br/>
+ &nbsp; &nbsp;- *must know if threading desired or not<br/>
+ &nbsp; &nbsp;- *class object inside thread must have pointer to thread owner class object<br/>
+ &nbsp; &nbsp;- *thread owner class object must have pointer to class object inside thread<br/>
+ &nbsp; &nbsp;- *mutex on flag in thread owner class for thread class to indicate script execution completion<br/>
+ &nbsp; &nbsp;- *mutex on flag in thread class for thread owner to indicate that thread should terminate<br/>
+ &nbsp; &nbsp;- *thread class must have a process function with while loop until terminate flag is asserted<br/>
+ &nbsp; &nbsp;- *thread class process function while loop must IDLE/SLEEP for some interval between flag checks<br/>
+ &nbsp; &nbsp;- *mutex on flag in thread class for thread owner to indicate single run or repeat script runs<br/>
+ &nbsp; &nbsp; &nbsp; after each IDLE/SLEEP interval<br/>
+ &nbsp; &nbsp;- *mutex on flag in thread class for thread owner to indicate to execute the assigned script<br/>
+ &nbsp; &nbsp;- *mutex on flag in thread class for thread owner to indicate to stop repeated execution of script<br/>
+ &nbsp; &nbsp;- *thread class must have function callable by thread owner class to set SLEEP interval<br/>
+ &nbsp; &nbsp;- make a thread for lua environment if directed<br/>
+ &nbsp; &nbsp;- must register c++ class function into lua to print strings out to log file<br/>
+<br/>
+ &nbsp; &nbsp;- thread class Process() fuction while loop psuedocode:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- ENTER<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- print initial start message to log<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- while ( not terminate_flag )<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- SLEEP: IDLE/SLEEP interval - always executed at beginning of while loop iteration<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- CHECK FLAGS: <br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- if run_flag is set, set State = RUN<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- if repeat_flag is set, set State = REPEAT<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- if stop_flag is set, set State = IDLE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- STATE:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IDLE; do nothing, &nbsp;clear ALL flags<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RUN: Execute Script, clear run_flag<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- REPEAT: Execute Script<br/>
+<br/>
+ &nbsp; &nbsp;- thread script control methods:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Run - start script execution, script will run once if repeat_flag is not set, will repeat otherwise<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- takes repeat bool as argument<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Stop - script execution will cease after current iteration, repeat_flag will be cleared<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- takes no arguments<br/>
+<br/>
+ &nbsp; &nbsp;- write a bunch of functions that take one or two string args and maybe format args, then formats<br/>
+ &nbsp; &nbsp; &nbsp; them into html lines for html log viewing. &nbsp;Put these into their own file.<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- ERROR: <br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DEBUG: <br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- INFO: <br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- EXCEPTION: <br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- WARNING: <br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- SQL ERROR: <br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- <br/>
+<br/>
+<br/>
+read how to properly use mutexes and when<br/>
+<br/>
+<br/>
+- INSTANTIATE LuaThread class object<br/>
+ &nbsp; &nbsp;- make local LuaEnvironment object then create boost::thread with that object if threading desired<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- view imageserver's way of creating asio::thread with a std::auto_ptr&lt;&gt;<br/>
+ &nbsp; &nbsp;- &nbsp;<br/>
+<br/>
+ &nbsp; &nbsp;- ENTER THREAD<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Create new instance of LuaEnvironment<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- make call to thread owner object instance of LuaThread and pass pointer to the new LuaEnv. obj<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- while( exit &nbsp;condition NOT set )<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- run script, then return<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- somehow, IDLE here until external thread owner gives gio-ahead to continue execution<br/>
+ &nbsp; &nbsp;- EXIT THREAD<br/>
+<br/>
+* NOTES on using 'boost::thread' library:<br/>
+- use boost::this_thread::get_id() as the access code to verify calls from LuaEnv to LuaThread<br/>
+- objects passed into boost threads are COPIED, so DO NOT instantiate a lua state in a constructor, but within some initializeLua() call made subsequent to thread creation<br/>
+- <br/>
+<br/>
+ &nbsp; &nbsp;- class LuaThread<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;public:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ LuaThread(std::string scriptName, bool &nbsp;useThreading)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ ~LuaThread()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ LuaEnvironment * GetLuaEnv();<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;// Script Management:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ int ExecuteScript()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ int KillScript()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ int PingScript()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;// Accessing Lua:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ std::string GetString(std::string)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ int GetInt(std::string)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ double GetDouble(std::string)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ bool GetBool(std::string)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ int SetString()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ int SetInt()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ int SetDouble()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ int SetBool()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;// Thread-initiated calls to us:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ void Script_ExecutionComplete(uint32 accessCode= 0)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ void Script_LogMessage(std::string message, uint32 accessCode= 0)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;protected:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- LuaEnvironment * pLuaEnv;<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- uint32 m_MyScriptAccessCode<br/>
+<br/>
+<br/>
+pinkslimeisamyth.com<br/>
+Beef Products, Inc.<br/>
+www.theakronacademy.org<br/>
+thread programming tutorials, best practices, methodologies<br/>
+<br/>
+<br/>
+ &nbsp; &nbsp;- class LuaEnvironment<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;public:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ LuaEnvironment()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ ~LuaEnvironment()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ void SetScriptAccessCode(uint32 accessCode)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;protected:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- LuaThread * p_MyLuaThread<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- lua interpreter instance<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- uint32 m_MyScriptAccessCode<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- html log file path<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;OR<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- file pointer to log file<br/>
+<br/>
+<br/>
+* use the SWIG tool to build lua tables of class functions for Ship, ModuleManager, SystemManager, BubbleManager, InventoryItem, LSC, ItemFactory<br/>
 <br/>
 <br/>
 <br/>

@@ -140,14 +140,10 @@ protected<br/>
 <br/>
 <br/>
 *** MODULE MANAGER REDESIGN ***<br/>
-* Separate out the single m_modules std::vector&lt;&gt; container to five std::map&lt;&gt; containers each indexed by the item flag value, because there is a unique flag value for every high, medium, low, rig, and subsystem slot. &nbsp;There should be one std::map&lt;&gt; container for each of these slot types: high power, medium power, low power, rig, and subsystem.<br/>
 * There should be separate functions to handle fitting/unfitting T3 subsystem modules because not only do they modify ship attributes but also modify the ship's slot configuration.<br/>
 <br/>
 <br/>
 *** TODO ***<br/>
-* Adapt Luck's new MM framework changes to the Incursion and Apocrypha client codebases<br/>
-* We need Get() type functions to return pointers to ShipModule objects for any fitted modules on a ship in order to manage combat, compute loot drops, etc. &nbsp;Right now, ModuleManager hides all access to the lists of ShipModule objects that it owns and maintains. &nbsp;They should allow access to each slot and return pointer NULL if slot is empty.<br/>
-* Make a ModuleManager::SaveModules() that saves all info for all modules to the DB as well as invokes SaveAttributes() for all modules fitted to ship including rigs<br/>
 * Study active effects and determine what new stuff we need to make active modules work.<br/>
  &nbsp;- Pick a first module to make work, something simple, say armor repairer.<br/>
 <br/>
@@ -159,6 +155,5 @@ protected<br/>
 <br/>
 <br/>
 *** DONE ***<br/>
-* Luck has nearly finished his MM framework redesign and some of us devs are going to get trained on the new codebase<br/>
 <br/>
 </body></html>

@@ -8,11 +8,25 @@
 +++ The Wormhole Drive +++<br/>
 Kinda like a stargate from the Stargate:SG1 show, where a wormhole opens up to an intended target system be it either a W-space system or a designated K-space system. &nbsp;We could hijack a current module like the jump drive and make new entries in the DB for it, then use force field password to "set" the target system by name or locus signature. &nbsp;When activated, the wormhole entry point is created, but the wormhole drive-carrying ship cannot move until the module is disengaged and the current cycle completes, but the wormhole entry point stays active until then allowing ships to come out and go in. &nbsp;When module deactivates, the wormhole drive-carrying ship has 30sec to enter wormhole before despawn. &nbsp;To make this item of strategic and tactical importance and risk balanced, make the ship have to run out a full cycle once before the wormhole opens up, so at least the ship and others are vulnerable while waiting for the first cycle to complete. &nbsp;Make the cycle time kinda long, say 1 minute or maybe 5, and use some advanced science skill to reduce the cycle time by 10% per level.<br/>
 <br/>
+<br/>
++++ Stardrive +++<br/>
+- Stardrive on ALL capital ships: straight multi 100AU/s warp to solar system in constellation<br/>
+ &nbsp; &nbsp;- at midpoint, switch grid to load destination solar system? &nbsp;or nearest solar system?<br/>
+ &nbsp; &nbsp;- includes: carriers, jump freighters, dreadnaughts, supercarriers, titans<br/>
+ &nbsp; &nbsp;- requires fuel, but what kind, how much per AU traveled?<br/>
+ &nbsp; &nbsp;- how to handle ships lost in the void run out of fuel? &nbsp;failsafe fleet warp abort on fuel exhaustion<br/>
+ &nbsp; &nbsp;- requires stars of all constellation systems to be in overview<br/>
+ &nbsp; &nbsp;- are there any solar systems that are shared across constellations?<br/>
+ &nbsp; &nbsp;- include all stars within a certain amount of AU perhaps? &nbsp; how far out?<br/>
+<br/>
+<br/>
 +++ Ship Explosions Do Damage to Nearby Ships Regardless of Friend/ Foe +++<br/>
 This would be very realistic to make ship explosions dispense damage to nearby ships, proportional to how close they are at the time of the explosion with the damage amount dropping off with distance according to the inverse square law. &nbsp;Ship capacitor amount would translate into half Thermal half EM damage along with any loaded cap booster charges and charges in cargo "selected" for destruction, ship mass would translate into kinetic damage, and loaded missiles/bombs and any missiles/bombs/jump or POS &nbsp;fuel in cargo "selected" for destruction rather than loot drop would translate into explosive damage.<br/>
 <br/>
+<br/>
 +++ Titan SuperWeapon Area-of-Effect Damage +++<br/>
 The Titan SuperWeapons are targeted modules now, however, we want to make them do damage to nearby ships as well as the primary target. &nbsp;They do 2 million hp of damage the majority of which should be applied to the primary target, however, a good portion should be distributed to nearby ships with damage amounts applied using the radio frequency transmission energy falloff equation (inverse square law) as a function of distance away from the transmission point, such that ships very close by the primary target get hit badly, and ships at some distance away receive some damage and ships far away receive little to no damage. &nbsp;So, just to be clear, if more than one ship is in effective radius of the weapon, more than 2 million hp will most likely be dispensed since the primary target will receive random hp between 80% and 100% of the 2 million hp and that destruction wave propagates outward in all directions as a sphere, with an amount of damage dispensed to each ship between 80% and 100% of the magnitude of 2 million hp times the inverse square law's resulting fraction of damage at radius 0 as a function of the distance of each ships from radius 0, the initial impact point of the weapon. &nbsp;Titan SuperWeapon skill level should boost effective radius from a base by 5-10% per level. &nbsp;Perhaps attach a new attribute to the superweapon modules for base damage radius and attach new attribute to superweapon skills of percent increase in that radius per level.<br/>
+<br/>
 <br/>
 +++ Reconaissance Probes and/or Drones +++<br/>
 Scan Probes and/or Drones deployed anywhere in a solar system can be left in-system even when the player leaves and can post intelligence data to a special chat channel for all, some, or each individual recon probe.<br/>
@@ -51,7 +65,6 @@ When warping to a planet/moon/star, set destination coordinates to ther point on
 * DestinyManager: create new public function OrbitCelestial() that will take current altitude from celestial as the orbit radius and current heading (if any) or random one if ship is stationary, and project that onto the orbiting sphere to begin orbital maneuvers. &nbsp;ship's maximum sublight velocity must be temporarily increased to 200,000m/s while performing orbital maneuvers<br/>
 <br/>
 <br/>
-<br/>
 +++ POS installations can be placed anywhere in orbit of star/moon/planet +++<br/>
 +++ POS installations placed in orbit of a star do not show up on probe scans +++<br/>
 +++ POS installations placed in orbit of a star show up on directional scan within proximity of 500km<br/>
@@ -62,6 +75,17 @@ When warping to a planet/moon/star, set destination coordinates to ther point on
  &nbsp; &nbsp; &nbsp; &nbsp;- all target locks will suffer random target lock disruption<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- all ships' shields will suffer random hits to them coincident w/ target lock disruptions<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- all drones controlled by a ship hit with these random flares will also 'reboot' to 'idle', the ship does not lose control of them, however, they lose thier target locks, go to passive mode and stop dead in space staying that way until the ship pilot sets them to a target again<br/>
+<br/>
+<br/>
++++ Ship Collisions Do Damage to Shields, Armor, Hull +++<br/>
+<br/>
+<br/>
++++ Warp Field Destabilization Matrix +++<br/>
+This would be a module of opposite effect as a Warp Stab, but not like a warp jammer/disruptor. &nbsp;Its purpose, when activated prior to entering a warp, is to randomize the warp exit coordinates along the direction of travel. &nbsp;Its primary use is fleeing hosile forces that have or may have anticipated your direction of travel, especially if it a celestial. &nbsp;This module is really just a safe-spot generator, wih the low liklihood of hitting your intended destination on-grid.<br/>
+ &nbsp; + ALTERNATIVE IMPLEMENTATION: not only would the warp distance be randomized but the vector could be also randomized AND the warp distance could vary between 50% to up to 500% or 1000%<br/>
+<br/>
+<br/>
+<br/>
 <br/>
 <br/>
 </body></html>
