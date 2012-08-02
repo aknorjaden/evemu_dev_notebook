@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Ship Combat</title>
+</head><body><br/>
+*** NEED TO RE-CREATE THE CONTENT THAT WAS LOST ***<br/>
+-------&gt; GET THE RECOVERED DATA FOR THIS PAGE FROM EVEmu Wiki's 'Ship Combat' page \o/<br/>
+<br/>
+*** Ship position and movement accuracy using the Destiny Manager<br/>
+<br/>
+<br/>
+*** Collision detection and Handling<br/>
+Evemu does not support, handle, nor even detect collisions between ships, structures, or drones. &nbsp;The ideal would be to get full access to the formulas and methods by which collisions are detected and handled by the retail product, however that information is simply not available. &nbsp;We are left with approximating collision detection ad handling.<br/>
+ &nbsp; &nbsp;- Collision Detection:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ In order to detect a collision between any two 'collidable' objects, their relative positions must be compared and if the distance falls within the sum of both objects' collision boundaries, a collision has been detected. &nbsp;What has to happen is each object in a Bubble (grid) must check its distance to all- other objects in the same Bubble (grid) on each Destiny tick. &nbsp;The more objects in the same bubble, the exponentially increasing number of distances need to be checked. &nbsp;Os there a better way to do this?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;--- Research: &nbsp;multi-object collision detection<br/>
+ &nbsp; &nbsp;- Collision Handling:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ Collisions in EVE are implemented as being Elastic in nature. &nbsp;It is unknown at this time what the coefficient(s) of elsticity are as used by EVE, so we'll have to research our own. &nbsp;We do know what Elastic collisions are, and thus are fully aware of the vector intersection driven method to determine the post-collision vectors for both objects (for the movable ones, that is) based on their pre-collision vectors and relative masses.<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;--- See EVE Ship Movement artice on the Web for possible Rev-Eng'd elasticity coeff.<br/>
+<br/>
+<br/>
+*** Damage dealing and reciving<br/>
+<br/>
+<br/>
+*** Effects dealing and receiving<br/>
+<br/>
+<br/>
+* Warp disruption by deployed warp disruption bubbles<br/>
+<br/>
+<br/>
+</body></html>

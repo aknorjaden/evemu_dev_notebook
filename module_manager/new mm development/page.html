@@ -67,16 +67,19 @@
 * DATA ENTRY: Fill dgmEffectsInfo and dgmEffectsActions tables with some initial passive Modules<br/>
 - Modules<br/>
  &nbsp; &nbsp;PASSIVE MODULES:<br/>
- &nbsp; &nbsp;- Adaptive Nano Plating I<br/>
- &nbsp; &nbsp;- Cap Recharger I<br/>
- &nbsp; &nbsp;- Power Diagnostics I<br/>
- &nbsp; &nbsp;- Gyrostabilizer I<br/>
- &nbsp; &nbsp;- Shield Power Relay I<br/>
- &nbsp; &nbsp;- Targeting Computer I<br/>
+ &nbsp; &nbsp;- * Adaptive Nano Plating I<br/>
+ &nbsp; &nbsp;- * Cap Recharger I<br/>
+ &nbsp; &nbsp;- * Power Diagnostics I<br/>
+ &nbsp; &nbsp;- * Gyrostabilizer I<br/>
+ &nbsp; &nbsp;- * Shield Power Relay I<br/>
+ &nbsp; &nbsp;- * Tracking Enhancer I<br/>
  &nbsp; &nbsp;ACTIVE MODULES:<br/>
- &nbsp; &nbsp;- Armor Thermic Hardener I<br/>
- &nbsp; &nbsp;- 1MN Microwarpdrive I<br/>
+ &nbsp; &nbsp;- * Armor Thermic Hardener I - need to add capacitor need consumption effect to wiki table<br/>
+ &nbsp; &nbsp;- * 10MN Microwarpdrive I - need to add capacitor need consumption effect to wiki table<br/>
  &nbsp; &nbsp;- Medium Shield Booster I<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;-- PROBLEM: one effectID may affect more than one attribute, so, how do we fill data for the<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dgmEffectsActions table where one attribute is modify-maintained and the other attribute<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; is modify-consume?<br/>
  &nbsp; &nbsp;- Medium Energy Neutralizer I<br/>
  &nbsp; &nbsp;- 425mm Autocannon I<br/>
  &nbsp; &nbsp;- ECM - Multispectral Jammer I<br/>
