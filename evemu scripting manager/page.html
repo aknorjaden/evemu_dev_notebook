@@ -19,14 +19,14 @@ GOAL: To create a generic scripting engine class with support functions and API 
 <br/>
 *** STEPS TODO ***<br/>
 1. create a new class to contain a lua interpreter and helper and API functions with a public interface to provide the basic functions needed to work with the interpreter:<br/>
- &nbsp; &nbsp;- Load script<br/>
+ &nbsp; &nbsp;- DONE - Load script<br/>
  &nbsp; &nbsp;- Stop script<br/>
- &nbsp; &nbsp;- Execute script<br/>
- &nbsp; &nbsp;- Load script arguments<br/>
- &nbsp; &nbsp;- Get output values from script<br/>
+ &nbsp; &nbsp;- DONE - Execute script<br/>
+ &nbsp; &nbsp;- DONE - Load script arguments<br/>
+ &nbsp; &nbsp;- DONE - Get output values from script<br/>
  &nbsp; &nbsp;- Connection to outside world for script logging output (TCP, evemu server console, ?)<br/>
 <br/>
-* design a generic class wrapper containing a Lua embedded interpreter and some standard functions used to work with the interpreter and allow tieing into lua with c++ functions and getting output from lua scripts<br/>
+* DONE - design a generic class wrapper containing a Lua embedded interpreter and some standard functions used to work with the interpreter and allow tieing into lua with c++ functions and getting output from lua scripts<br/>
 <br/>
 <br/>
 * Lua wrapper class and Thread class psuedocode:<br/>
@@ -126,12 +126,6 @@ read how to properly use mutexes and when<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;protected:<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- LuaEnvironment * pLuaEnv;<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- uint32 m_MyScriptAccessCode<br/>
-<br/>
-<br/>
-pinkslimeisamyth.com<br/>
-Beef Products, Inc.<br/>
-www.theakronacademy.org<br/>
-thread programming tutorials, best practices, methodologies<br/>
 <br/>
 <br/>
  &nbsp; &nbsp;- class LuaEnvironment<br/>

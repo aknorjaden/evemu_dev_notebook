@@ -17,4 +17,26 @@
 - Call OUT to C++ RequestTargetList() - returns array of entityID(int), distance(real) INTO Lua environment<br/>
 - Call OUT to C++ EngageTarget(int entityID)<br/>
 <br/>
+<br/>
+*** ULTIMATE SCENARIO ***<br/>
+- This scenario should play out all exciting NPC behaviors to flush out all possible sources of data and actions to be taken by an NPC AI script<br/>
+-- npc fleet warps into engagement zone as directed or in response to arrival of hostile ship(s)<br/>
+-- platoons are dispatched to station, belts, gates to set bubbles and camps<br/>
+-- scans are inittiated to search for POS installations, anomaly sites, signature sites, and wormholes<br/>
+-- scouts (could be cloaked) are dispatched to POS, anomaly, signature sites to discover any awaiting hostiles ripe for engagement<br/>
+-- arranging battle squads:<br/>
+ &nbsp;-- DPS: close range / long range sniper<br/>
+ &nbsp;-- logistics: shield / armor<br/>
+ &nbsp;-- scouts: frigates, interceptors, cov-ops, cloaky<br/>
+ &nbsp;-- fast tackle: frigates, interceptors, fast faction cruisers<br/>
+-- when hostile ships are found:<br/>
+ &nbsp;-- review hostile ship list for these characteristics and choose one of more strategies to employ:<br/>
+ &nbsp;-- weakest link: find ship with lowest shield/armor, focus fire to destroy - rinse, repeat<br/>
+ &nbsp;-- logistics must die: find first closest logistics class ship, focus fire <br/>
+<br/>
+<br/>
+<br/>
+*** ESSENTIAL DATA STRUCTURES AND FUNCTIONS ***<br/>
+* Target List<br/>
+ &nbsp; &nbsp;- FIELDS: entityID, typeID, groupID, rangeToTarget, shieldLevel, armorLevel, <br/>
 </body></html>

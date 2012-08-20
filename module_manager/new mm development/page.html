@@ -76,10 +76,26 @@
  &nbsp; &nbsp;ACTIVE MODULES:<br/>
  &nbsp; &nbsp;- * Armor Thermic Hardener I - need to add capacitor need consumption effect to wiki table<br/>
  &nbsp; &nbsp;- * 10MN Microwarpdrive I - need to add capacitor need consumption effect to wiki table<br/>
- &nbsp; &nbsp;- Medium Shield Booster I<br/>
+ &nbsp; &nbsp;- * Medium Shield Booster I<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;-- PROBLEM: one effectID may affect more than one attribute, so, how do we fill data for the<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dgmEffectsActions table where one attribute is modify-maintained and the other attribute<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; is modify-consume?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; is modify-consume for each cycle of an Active module? &nbsp;this would not apply to passives.<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;-- SOLUTION: move the field(s) describing maintain/consume behavior of effect to the<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dgmEffectsInfo table so that they are tied to each target attribute to be modified<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; by an effect instead of being tied to the effect itself<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE update table sql file<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE update all wiki documentation<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE update MEffect class members and methods<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE update the appropriate classes<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - make changes to effects info list wiki page<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - we can import the current CCP dumps into mysql running our wiki.....so if we did,<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;can we do queries on those tables and display query reults in a wiki page using<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;one or more wiki templates, extensions, or both<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- it would be nice to provide some wiki templates such as these:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Attribute, Effect, Type, Group, Category, Station, Entity, etc to lookup their info<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- should this be done using EVEmu Web Portal intead?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - change effect loading to not print another error, but to report the # of failures on import<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;in only one line in the server log, using error level<br/>
  &nbsp; &nbsp;- Medium Energy Neutralizer I<br/>
  &nbsp; &nbsp;- 425mm Autocannon I<br/>
  &nbsp; &nbsp;- ECM - Multispectral Jammer I<br/>
@@ -100,6 +116,7 @@
  &nbsp; &nbsp;- BS: Maelstrom<br/>
  &nbsp; &nbsp;- BS: Dominix<br/>
 <br/>
+<br/>
 * DATA ENTRY: Fill dgmEffectsInfo and dgmEffectsActions tables with some initial Skills<br/>
 - Skills<br/>
  &nbsp; &nbsp;- Energy Systems Operations<br/>
@@ -119,6 +136,7 @@
  &nbsp; &nbsp;- Mechanic<br/>
  &nbsp; &nbsp;- Hull Upgrades<br/>
  &nbsp; &nbsp;- Shield Management<br/>
+<br/>
 <br/>
 * TEST / BUG FIX - POST-DATA ENTRY:<br/>
  &nbsp; &nbsp;- DONE - FIRST: implement another attribute map in the InventoryItem class to store DEFAULT set<br/>

@@ -7,10 +7,10 @@
 *** NEED TO RE-CREATE THE CONTENT THAT WAS LOST ***<br/>
 -------&gt; GET THE RECOVERED DATA FOR THIS PAGE FROM EVEmu Wiki's 'Ship Combat' page \o/<br/>
 <br/>
-*** Ship position and movement accuracy using the Destiny Manager<br/>
+*** Ship position and movement accuracy using the Destiny Manager ***<br/>
 <br/>
 <br/>
-*** Collision detection and Handling<br/>
+*** Collision detection and Handling ***<br/>
 Evemu does not support, handle, nor even detect collisions between ships, structures, or drones. &nbsp;The ideal would be to get full access to the formulas and methods by which collisions are detected and handled by the retail product, however that information is simply not available. &nbsp;We are left with approximating collision detection ad handling.<br/>
  &nbsp; &nbsp;- Collision Detection:<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;+ In order to detect a collision between any two 'collidable' objects, their relative positions must be compared and if the distance falls within the sum of both objects' collision boundaries, a collision has been detected. &nbsp;What has to happen is each object in a Bubble (grid) must check its distance to all- other objects in the same Bubble (grid) on each Destiny tick. &nbsp;The more objects in the same bubble, the exponentially increasing number of distances need to be checked. &nbsp;Os there a better way to do this?<br/>
@@ -20,13 +20,73 @@ Evemu does not support, handle, nor even detect collisions between ships, struct
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;--- See EVE Ship Movement artice on the Web for possible Rev-Eng'd elasticity coeff.<br/>
 <br/>
 <br/>
-*** Damage dealing and reciving<br/>
+*** Damage dealing and reciving ***<br/>
 <br/>
 <br/>
-*** Effects dealing and receiving<br/>
+*** Effects dealing and receiving ***<br/>
 <br/>
 <br/>
-* Warp disruption by deployed warp disruption bubbles<br/>
+*** Warp disruption by deployed warp disruption bubbles ***<br/>
 <br/>
+<br/>
+*** Ship Death and Wreck Placement with Loot Drop ***<br/>
+* The CCP db dump has no linkage of ship type to wreck type for each ship type, so we either need a new table or one field added to an existing table that links the wreck item typeID to the actual ship typeID<br/>
+ &nbsp; &nbsp;- add field to existing table:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- which table?<br/>
+ &nbsp; &nbsp;- new table: &nbsp;ShipWrecks<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- field: &nbsp;shipTypeID - int(10) for typeID of regular ship<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- field: &nbsp;wreckTypeID - int(10) for typeID of the wreck for this ship<br/>
+ &nbsp; &nbsp;- programatic with table: many ship types are in the same 'class' such as Amarr Cruiser, so can<br/>
+ &nbsp; &nbsp; &nbsp; we somehow tie the same wreck typeID to all of the typeIDs for these same-class ships?<br/>
+<br/>
+<br/>
+== SPACE OPERATIONS ==<br/>
+* Accurate Positioning: since we cannot emulate destiny ship movement calculations exactly we mave have to force a '/syncloc' on every ship object (exclude drones) at some interval of destiny ticks with the first interval counting ticks from the moment the DestinyManager instance for that ship was created<br/>
+* Collisions: we need to implement purely elastic 3D collisions that conserve momentum on both parties involved and ONLY with ships. &nbsp;The collision should calculate a vector of travel along which a GoToDirection() action is forced with a speed calculated from the conservation of momentum. &nbsp;The previous active ship movement should be queued as the collision is detected then on the next tick after the collision's GoToDirection is ordered, thae queued action should immediately resume. &nbsp;At this time, to ensure accurate positioning of both ships involved, issue a '/synloc' on both ships.<br/>
+** Collision Detection: The only way to detect collisions is to query distance to and radius of every collidable object in the current bubble, on every destiny tick. &nbsp;Then if the result of distance is &lt;= to other object radius plus this ship's radius then a collision is detected.<br/>
+** Do all this and see how bad the /syncloc results are after a bunch of different collisions at different speeds for both ships. &nbsp;Also, evaluate the increase in load on the cpu by the server.<br/>
+<br/>
+<br/>
+<br/>
+=== Sources ===<br/>
+<br/>
+* [http://wiki.eveonline.com/en/wiki/Aligning Aligning]<br/>
+<br/>
+* [http://eve.allakhazam.com/wiki/EVE_Guide_Top_Speed_Calculation_Guide Max Velocity]<br/>
+<br/>
+== TARGETING ==<br/>
+* Initiating a Target Lock: Evemu should support the following aspects of targeting:<br/>
+** Attempt to Lock Target - receive packet, check max targeting distance attribute of ship, and if within that distance to target, proceed to lock target, send target lock packets to aggressor and targeted ship clients<br/>
+** Unlock Target - when requested by aggressor, this should happen immediately<br/>
+*** Loss of Target Lock<br/>
+**** when a target travels beyond the max targeting range of the aggressor, that target's lock will be lost immediately<br/>
+**** when the aggressor jumps a gate, when the aggressor docks in a station, when the aggressor becomes jammed by another ship, ALL targets' locks will be lost<br/>
+<br/>
+<br/>
+== DAMAGE ==<br/>
+* we need to make application of damage to ships, drones, modules, and structures work<br/>
+** Damage.cpp file holds all the work so far. &nbsp;Should this be separated out to each class' cpp file?<br/>
+*** Adequately document the procedure for applying damage to a target object<br/>
+*** Tracking attributes and sensor attributes must be used to determine the probability that a target is actually hit with a weapon and the weapon and charge attributes must be used to determine how much damage points and which of the four types are actually applied to the target object<br/>
+<br/>
+<br/>
+== EFFECTS ==<br/>
+* we need to consider how effects are applied to a target object since no damage is involved in this process, only changes in either ship attributes or ship state (speed, warp ability, cloak, others?)<br/>
+** we need a message passing mechanism that can pass information on an effect and really a message that contains an array of 1 or more effects that an aggressor ship is applying to a target object<br/>
+*** INFO:<br/>
+**** aggressor shipID<br/>
+**** effectID or pointer to effect class for that effectID<br/>
+**** specific data regarding how said effect applies to target (list of attribute modifiers?)<br/>
+<br/>
+<br/>
+== DEATH ==<br/>
+* we need to make ship, drone, structure explosions work in the client<br/>
+** when deemed to happen, the item should be destroyed in memory and database along with its inventory but before that is done, the wreck should be spawned and its inventory filled with the randomly selected list of inventory items for the 'loot drop'<br/>
+*** how do we know which wreck ID matches the ship, structure that was destroyed?<br/>
+**** there is no linkage of these typeIDs in the database, so we'll have to create them in our own database table. &nbsp;there are 279 entries in 'invTypes' with 'wreck' in description.. not that bad :/<br/>
+** Kill mails: we need to create a system that creates properly formatted kill mails and delivers them to the players and i imagine they are all stored in the database too so they can be retreived via API keys for out-of-game [[Out of Game Player Tools#EVEmu Killboard|killboards]]<br/>
+<br/>
+** Capsule death: when capsule is destroyed, NO wreck is spawned, but a corpse with char's name IS then the character whose capsule was destroyed should be moved into a new clone (and capsule with a noob ship) into the station last selected for medical clone, set clone as grade Alpha<br/>
+*** we need clone station selection AND clone upgrades to be working to support capsule death<br/>
 <br/>
 </body></html>
