@@ -18,7 +18,39 @@
 - Call OUT to C++ EngageTarget(int entityID)<br/>
 <br/>
 <br/>
-*** ULTIMATE SCENARIO ***<br/>
+*** NPC AI behaviors being used by lua scripts and actions that they will take requires an API<br/>
+- API will be very useful for implementing PCP<br/>
+- API for all kinds of actions is needed<br/>
+ &nbsp;- controlling ship movements<br/>
+ &nbsp;- drone control<br/>
+ &nbsp;- controlling modules on ships<br/>
+ &nbsp;- targeting<br/>
+ &nbsp;- issueing commands to other NPC ships in the NPC fleet<br/>
+ &nbsp;- <br/>
+<br/>
+*** ALL NPCs SPAWNED WILL PERSIST UNTIL DESTROYED OR IN SOME RARE CASES, DESPAWNED AND ALL WILL ALSO PERSIST ACROSS SERVER RESTARTS.<br/>
+- this will require NPC ship entities be saved to the database just as player ship entities are and also restored in the systems they existed ONLY if within a 10 jump radius of a player logging in, otherwise they do not get loaded into the game<br/>
+<br/>
+<br/>
+*** TRADE / INDUSTRIAL / MINING NPCs - COMPREHENSIVE SCENARIOS ***<br/>
+- ALL NPC activity of these types are spawned when the system noticies at least one player logged on &nbsp;in a region or cluster.<br/>
+- Haulers - Need a system to create a connected list of 10 jump routes from the system the player resides to be used to create random hauling routes starting, ending, moving through, or moving nearby the system in which the player is located at the time of the spawn.<br/>
+ &nbsp; &nbsp;- UPDATE this list when the player moves 5 jumps away from previous 'center' system. &nbsp;<br/>
+ &nbsp; &nbsp;- Each of these lists will be considered a Super-Bubble or Super-Grid only for NPC useage.<br/>
+ &nbsp; &nbsp;- Each Super-Grid should overlap by two or so systems and players can transition between them or new ones are created if none esist where the player is moving to.<br/>
+ &nbsp; &nbsp;- KNOW WHAT? &nbsp;MAKE NO LISTS, just spawn stuff and pick start and end systems, then go.<br/>
+ &nbsp; &nbsp;- lua script should be used to choose which types and amounts of goods are hauled<br/>
+- MINING - spawn mining ships and fleets of compositions and types and numbers slightly randomized but correlative to the system's security level<br/>
+ &nbsp; &nbsp;- lua script should choose which types of rocks are mined and when and which belts to use<br/>
+ &nbsp; &nbsp;- mining fleets will exhibit various fleet doctrines:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- either be disorganized, aligned to each rock of their own or only one, OR all aligned to POS or<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; the station<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- fleet moves to leave the field after a random amount of time from when a player deemed as<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; hostile enters the system - ONLY in 0.0, and more quickly the better organized they are, ie<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; fleet doctrines where they are all common aligned will be more 'observant' and react faster<br/>
+<br/>
+<br/>
+*** COMBAT NPCs - ULTIMATE SCENARIO ***<br/>
 - This scenario should play out all exciting NPC behaviors to flush out all possible sources of data and actions to be taken by an NPC AI script<br/>
 -- npc fleet warps into engagement zone as directed or in response to arrival of hostile ship(s)<br/>
 -- platoons are dispatched to station, belts, gates to set bubbles and camps<br/>
@@ -33,8 +65,25 @@
  &nbsp;-- review hostile ship list for these characteristics and choose one of more strategies to employ:<br/>
  &nbsp;-- weakest link: find ship with lowest shield/armor, focus fire to destroy - rinse, repeat<br/>
  &nbsp;-- logistics must die: find first closest logistics class ship, focus fire <br/>
+-- chain of command:<br/>
+ &nbsp;-- fleet commander gives orders to each squad commander<br/>
+ &nbsp;-- each squad commander gives orders to each squad member<br/>
+ &nbsp;-- permissions granted/denied by fleet commander to each squad:<br/>
+ &nbsp; &nbsp;-- anchor on squad commander<br/>
+ &nbsp; &nbsp;-- target choosing<br/>
+ &nbsp; &nbsp;-- align out vector<br/>
+ &nbsp; &nbsp;-- warp out decision<br/>
+ &nbsp; &nbsp;-- disengagement/engagement<br/>
+-- ?<br/>
 <br/>
 <br/>
+*** INFORMATION NPC AI SCRIPTS NEED ***<br/>
+* GridEntityList<br/>
+ &nbsp; &nbsp;.&lt;entityID&gt;<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;.Type<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;.Group<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;.Range<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;.<br/>
 <br/>
 *** ESSENTIAL DATA STRUCTURES AND FUNCTIONS ***<br/>
 * Target List<br/>

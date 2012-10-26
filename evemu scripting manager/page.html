@@ -6,7 +6,7 @@
 </head><body><br/>
 GOAL: To create a generic scripting engine class with support functions and API libraries using the Lua embedded interpreter allowing community members to write scripts to interact with the various components of the server code that can be extended and adapted for whatever portion of the server code that we may wish to tie scripting to: NPC AI, missions, etc<br/>
 <br/>
-*** API Service Functions ***<br/>
+*** API Service Functions Groups ***<br/>
 &gt; Server<br/>
 &gt; Solar System (dealing with objects visible system-wide)<br/>
 &gt; Ship<br/>
@@ -24,7 +24,8 @@ GOAL: To create a generic scripting engine class with support functions and API 
  &nbsp; &nbsp;- DONE - Execute script<br/>
  &nbsp; &nbsp;- DONE - Load script arguments<br/>
  &nbsp; &nbsp;- DONE - Get output values from script<br/>
- &nbsp; &nbsp;- Connection to outside world for script logging output (TCP, evemu server console, ?)<br/>
+ &nbsp; &nbsp;- Give functions to Lua that call into C++ passing parameters into C++ functions<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Connection to outside world for script logging output: local log file for each script running<br/>
 <br/>
 * DONE - design a generic class wrapper containing a Lua embedded interpreter and some standard functions used to work with the interpreter and allow tieing into lua with c++ functions and getting output from lua scripts<br/>
 <br/>
