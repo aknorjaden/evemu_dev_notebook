@@ -106,7 +106,6 @@
 * Fields:<br/>
  &nbsp;- effectID<br/>
  &nbsp;- attributeSkillID &nbsp;- the attributeID on the ship indicating the skillID used by this bonus<br/>
- &nbsp;- attributeSkillLevel &nbsp;- the attributeID on the ship indicating the req. level of the skill<br/>
  &nbsp;- sourceAttributeID<br/>
  &nbsp;- targetAttributeID<br/>
  &nbsp;- calculationTypeID<br/>
@@ -114,26 +113,64 @@
  &nbsp;- effectAppliedTo<br/>
  &nbsp;- targetEquipmentType<br/>
  &nbsp;- targetGroupIDs<br/>
+ &nbsp;- targetChargeSize<br/>
+<br/>
+<br/>
+WIKI: documjent the known deviations from CCP standard operating procedures for aall areas<br/>
+- Modules:<br/>
 <br/>
 <br/>
 * DATA ENTRY: Fill dgmShipBonusModifiers table with some initial Ships<br/>
 - Ships<br/>
- &nbsp; &nbsp;- F: Punisher<br/>
- &nbsp; &nbsp;- F: Merlin<br/>
- &nbsp; &nbsp;- F: Imicus<br/>
- &nbsp; &nbsp;- F: Probe<br/>
- &nbsp; &nbsp;- C: Stabber<br/>
- &nbsp; &nbsp;- C: Moa<br/>
- &nbsp; &nbsp;- C: Maller<br/>
- &nbsp; &nbsp;- C: Exequror<br/>
+ &nbsp; &nbsp;- *F: Punisher<br/>
+ &nbsp; &nbsp;- *F: Merlin<br/>
+ &nbsp; &nbsp;- *F: Imicus<br/>
+ &nbsp; &nbsp;- *F: Probe<br/>
+ &nbsp; &nbsp;- F: Rifter<br/>
+ &nbsp; &nbsp;- F: Executioner<br/>
+ &nbsp; &nbsp;- F: Incursus<br/>
+ &nbsp; &nbsp;- F: Condor<br/>
+ &nbsp; &nbsp;- D: Coercer<br/>
+ &nbsp; &nbsp;- D: Cormorant<br/>
+ &nbsp; &nbsp;- D: Catalyst<br/>
+ &nbsp; &nbsp;- D: Thrasher<br/>
+ &nbsp; &nbsp;- * C: Stabber<br/>
+ &nbsp; &nbsp;- * C: Moa<br/>
+ &nbsp; &nbsp;- * C: Maller<br/>
+ &nbsp; &nbsp;- * C: Exequror<br/>
+ &nbsp; &nbsp;- T2 AF: Wolf<br/>
+ &nbsp; &nbsp;- T2 AF: Harpy<br/>
+ &nbsp; &nbsp;- T2 AF: Ishkur<br/>
+ &nbsp; &nbsp;- T2 AF: Vengeance<br/>
+ &nbsp; &nbsp;- *T2 HAC: Vagabond<br/>
+ &nbsp; &nbsp;- *T2 HAC: Muninn<br/>
+ &nbsp; &nbsp;- T2 HAC: Cerberus<br/>
+ &nbsp; &nbsp;- T2 HAC: Zealot<br/>
+d &nbsp; &nbsp;- C: Cynabal<br/>
+d &nbsp; &nbsp;- C: Ashimmu<br/>
  &nbsp; &nbsp;- BC: Prophecy<br/>
- &nbsp; &nbsp;- BC: Hurricane<br/>
+d &nbsp; &nbsp;- BC: Hurricane<br/>
+d &nbsp; &nbsp;- BC: Drake<br/>
+ &nbsp; &nbsp;- BC: Brutix<br/>
+ &nbsp; &nbsp;- Tier 3 BC: Oracle<br/>
+ &nbsp; &nbsp;- Tier 3 BC: Naga<br/>
+ &nbsp; &nbsp;- Tier 3 BC: Talos<br/>
+ &nbsp; &nbsp;- Tier 3 BC: Tornado<br/>
  &nbsp; &nbsp;- BS: Maelstrom<br/>
  &nbsp; &nbsp;- BS: Dominix<br/>
-<br/>
+ &nbsp; &nbsp;- BS: Megathron<br/>
+ &nbsp; &nbsp;- BS: Raven<br/>
+ &nbsp; &nbsp;- DIC: Heretic<br/>
+ &nbsp; &nbsp;- COVOPS: Anathema<br/>
+ &nbsp; &nbsp;- INT: Malediction<br/>
+d &nbsp; &nbsp;- LOGI: Scimitar<br/>
+ &nbsp; &nbsp;- SB: Nemesis<br/>
+d &nbsp; &nbsp;- HDIC: Broadsword<br/>
+ &nbsp; &nbsp;- BLACKOPS: Widow<br/>
 <br/>
 *** Dogma Skill Bonus Modifier tables:<br/>
 * Fields:<br/>
+ &nbsp;- skillID<br/>
  &nbsp;- effectID<br/>
  &nbsp;- sourceAttributeID<br/>
  &nbsp;- targetAttributeID<br/>
@@ -142,34 +179,38 @@
  &nbsp;- effectAppliedTo<br/>
  &nbsp;- targetEquipmentType<br/>
  &nbsp;- targetGroupIDs<br/>
+ &nbsp;- targetChargeSize<br/>
 <br/>
 <br/>
 * DATA ENTRY: Fill dgmSkillBonusModifiers table with some initial Skills<br/>
 - Skills<br/>
- &nbsp; &nbsp;- Energy Systems Operations<br/>
- &nbsp; &nbsp;- Energy Management<br/>
- &nbsp; &nbsp;- Energy Grid Upgrades<br/>
- &nbsp; &nbsp;- Engineering<br/>
- &nbsp; &nbsp;- Electronics<br/>
- &nbsp; &nbsp;- Electronics Upgrades<br/>
- &nbsp; &nbsp;- Weapon Upgrades<br/>
- &nbsp; &nbsp;- Long Range Targeting<br/>
- &nbsp; &nbsp;- Multitasking<br/>
- &nbsp; &nbsp;- Signature Analysis<br/>
- &nbsp; &nbsp;- Navigation<br/>
- &nbsp; &nbsp;- Warp Drive Operation<br/>
- &nbsp; &nbsp;- Evasive Maneuvering<br/>
- &nbsp; &nbsp;- Spaceship Command<br/>
- &nbsp; &nbsp;- Mechanic<br/>
- &nbsp; &nbsp;- Hull Upgrades<br/>
- &nbsp; &nbsp;- Shield Management<br/>
+ &nbsp; &nbsp;- *some gunnery skills: Gunnery, Sharpshooter, Rapid Firing, Surgical Strike, Controlled Bursts,<br/>
+ &nbsp; &nbsp; &nbsp; Trajectory Analysis, Weapon Upgrades<br/>
+ &nbsp; &nbsp;- *Energy Systems Operations<br/>
+ &nbsp; &nbsp;- *Energy Management<br/>
+ &nbsp; &nbsp;- *Energy Grid Upgrades<br/>
+ &nbsp; &nbsp;- *Engineering<br/>
+ &nbsp; &nbsp;- *Electronics<br/>
+ &nbsp; &nbsp;- *Electronics Upgrades<br/>
+ &nbsp; &nbsp;- *Weapon Upgrades<br/>
+ &nbsp; &nbsp;- *Long Range Targeting<br/>
+ &nbsp; &nbsp;- *Multitasking<br/>
+ &nbsp; &nbsp;- *Signature Analysis<br/>
+ &nbsp; &nbsp;- *Navigation<br/>
+ &nbsp; &nbsp;- *Warp Drive Operation<br/>
+ &nbsp; &nbsp;- *Evasive Maneuvering<br/>
+ &nbsp; &nbsp;- *Spaceship Command<br/>
+ &nbsp; &nbsp;- *Mechanics<br/>
+ &nbsp; &nbsp;- *Hull Upgrades<br/>
+ &nbsp; &nbsp;- *Shield Management<br/>
 <br/>
 <br/>
 * DATA ENTRY: Fill dgmImplantBonusModifiers table with some initial Implants<br/>
 - Implants<br/>
 <br/>
 <br/>
-* <br/>
+* FORGET THE WIKI, Oza is doing this now at my request on his Gork Admin site:<br/>
+ &nbsp; &nbsp;- web.gork.levelbelow.net<br/>
  &nbsp; &nbsp;- we can import the current CCP dumps into mysql running our wiki.....so if we did,<br/>
  &nbsp; &nbsp; &nbsp; can we do queries on those tables and display query reults in a wiki page using<br/>
  &nbsp; &nbsp; &nbsp; one or more wiki templates, extensions, or both<br/>
