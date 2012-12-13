@@ -4,6 +4,24 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>NPC System</title>
 </head><body><br/>
+<br/>
+***** IMPORTANT *****<br/>
+- we MUST add checks inside DestinyManager class to check if m_self is a client derived object BEFORE using CastToClient() in order to work with docking maneuvers<br/>
+<br/>
+<br/>
+*** UPDATE - NOVEMBER 2012 ***<br/>
+* Stranho has returned and is working on NPC systems<br/>
+ &nbsp; &nbsp;he has made some fixes and reports that NPC ships move, follow,target attack, and do damage !<br/>
+ &nbsp; - issues<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ attempting to target an NPC ship results in a client exception and the NPC ship disappearing<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;in space only, overview still shows NPC ship but at distance of -1.$<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ I've approved his pull req. and rebuilt the server, but the NPC ships disappear to -1.$ distance<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;immediately when they start targeting ME<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- track down the packet sent to MY client when NPC ship starts targeting ME<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ we have NO spawn groups or spawns defined in our DB tables at all<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ <br/>
+<br/>
+<br/>
 *** BASIC NPC ACTIONS AND SYSTEMS USED TO IMPLEMENT THEM ***<br/>
 * Movement<br/>
  &nbsp; &nbsp;- DestinyManager<br/>

@@ -8,25 +8,6 @@
 *** LET'S GET BUSY !!! ****<br/>
 <br/>
 <br/>
-* MODULEMANAGER:<br/>
-* nothing atm<br/>
-<br/>
-<br/>
-* MODULES: Review all actions of a Passive module as captured in eve live packet capture logs and note each packet type and outer structure and the Service Call to the server that was made<br/>
- &nbsp; &nbsp;+ Fit module (automatic online subsequent to fitting provided sufficient cpu &amp; power)<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- there might be a response to the initial fitting that the server sends by which client decides to send the automatic online call or not to<br/>
- &nbsp; &nbsp;+ Unfit module<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- could be disallowed if destination capacity is insufficient<br/>
- &nbsp; &nbsp;+ Online module<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- could be disallowed due to insufficient power and/or cpu<br/>
- &nbsp; &nbsp;+ Offline module<br/>
- &nbsp; &nbsp;+ Activate module<br/>
- &nbsp; &nbsp;+ Deactivate module<br/>
- &nbsp; &nbsp;+ Overload module<br/>
- &nbsp; &nbsp;+ Load Charge into module<br/>
- &nbsp; &nbsp;+ Unload Charge from module<br/>
- &nbsp; &nbsp;+ Reload Charge into module<br/>
-<br/>
 <br/>
 *** NOTES ON CONTINUING MODULE MANAGER AND SHIP COMBAT DEVELOPMENT ***<br/>
 * EXPERIMENT: run two clients in space, set a one-time halving of ship shields attribute with notify when ship is set to STOP in BeyonceBound and observe effect from own ship and other ship while targeting the ship whose shield dropped<br/>
@@ -44,6 +25,7 @@
  &nbsp; &nbsp;+ DONE - add a /kill &lt;entityID&gt; method to GMCommands.cpp<br/>
  &nbsp; &nbsp;+ DONE - test and debug updates to &nbsp;TerminalExplosion section to DoDestinyUpdates<br/>
  &nbsp; &nbsp;+ make a Ship::Kill() method that does most of the code now inside GMCommand's /kill<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- is this already inside Damage.cpp ? &nbsp; how about for NPC class ships?<br/>
  &nbsp; &nbsp;+ if killed ship has an operator that owns a character object, then cause char to disembark ship into<br/>
  &nbsp; &nbsp; &nbsp; a capsule, then explode ship and delete it<br/>
  &nbsp; &nbsp;+ can we provide a live update to the client that makes explosions more spectacular?<br/>
@@ -116,7 +98,7 @@
  &nbsp;- targetChargeSize<br/>
 <br/>
 <br/>
-WIKI: documjent the known deviations from CCP standard operating procedures for aall areas<br/>
+WIKI: document the known deviations from CCP standard operating procedures for aall areas<br/>
 - Modules:<br/>
 <br/>
 <br/>
@@ -219,12 +201,38 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- should this be done using EVEmu Web Portal intead?<br/>
 <br/>
 <br/>
-<br/>
+************************************<br/>
 * TEST / BUG FIX - POST-DATA ENTRY:<br/>
- &nbsp; &nbsp;- DONE - FIRST: implement another attribute map in the InventoryItem class to store DEFAULT set<br/>
- &nbsp; &nbsp; &nbsp; of the item's attributes UNMODIFIED and UNMODIFIABLE (if last one is possible - YES, DONE)<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- this set will be used to return the working set of item attributes to default so that<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; recalculation of final modified attributes can be made, hopefully w/o need of reverse calcs<br/>
+************************************<br/>
+* UPDATE ALL AREAS where Missing attributes are added to attribute maps of Ship, NPC, etc class objects to add those same attributes with their default values to the Default Attribute Map<br/>
+<br/>
+* IMPLEMENT GetDefaultAttribute() &nbsp;methods on InventoryItem, Ship, etc classes<br/>
+<br/>
+* MAKE STUBS for ALL MISSING server calls new in Crucible<br/>
+<br/>
+* MAKE WORK flagAutoFit functionality<br/>
+ &nbsp; &nbsp;- study server call that is invoked upon attempting to auto-fit a module<br/>
+ &nbsp; &nbsp;- need method to call on Ship -&gt; ModuleManager -&gt; ModuleContainer to find an unused slot<br/>
+ &nbsp; &nbsp; &nbsp; on the same bank as the module would be fitted to --- must query module effects for slot ID<br/>
+ &nbsp; &nbsp;- with new flag value, begin normal fitting procedures<br/>
+<br/>
+* FIX the fact that Module Online/Offline state is somehow not stored/loaded from the database<br/>
+ &nbsp; &nbsp;- first check to see if a log off or server restart is needed to reproduce this problem<br/>
+ &nbsp; &nbsp;- whenever i log off with modules fitted and onlined, then log back in, the modules are offline<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- check to see if onlining is working correctly i the server as well as database and packets to client<br/>
+ <br/>
+* RESEARCH PACKET LOGS for MODULES: Review all actions of a Passive module as captured in eve live packet capture logs (INCURSION and CRUCIBLE)and note each packet type and outer structure and the Service Call to the server that was made<br/>
+ &nbsp; &nbsp;+ Fit module (automatic online subsequent to fitting provided sufficient cpu &amp; power)<br/>
+ &nbsp; &nbsp;+ Unfit module<br/>
+ &nbsp; &nbsp;+ Online module<br/>
+ &nbsp; &nbsp;+ Offline module<br/>
+ &nbsp; &nbsp;+ Activate module<br/>
+ &nbsp; &nbsp;+ Deactivate module<br/>
+ &nbsp; &nbsp;+ Overload module<br/>
+ &nbsp; &nbsp;+ Load Charge into module<br/>
+ &nbsp; &nbsp;+ Unload Charge from module<br/>
+ &nbsp; &nbsp;+ Reload Charge into module<br/>
+<br/>
  &nbsp; &nbsp;- DONE - IMPORTANT: Fix PasswordModule.cpp's GeneraePasswordHas() from crashing<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;----&gt; re-test API Server calls w/ EFT and EVEmon<br/>
  &nbsp; &nbsp;- test loading of database info from all new dgmXXX tables into the Singleton-derived memory<br/>

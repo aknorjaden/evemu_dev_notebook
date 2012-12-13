@@ -5,7 +5,11 @@
 <title>MM Done Tasks</title>
 </head><body><br/>
 *** DONE ***<br/>
-* CHECK: NO - do the dgmEffectsInfo and dgmEffectActions load entire table into a singleton object or only selections into each item type instance?<br/>
+<span style="font-family: Droid Sans"> &nbsp; &nbsp;- DONE - FIRST: implement another attribute map in the InventoryItem class to store DEFAULT set<br/>
+ &nbsp; &nbsp; &nbsp; of the item's attributes UNMODIFIED and UNMODIFIABLE (if last one is possible - YES, DONE)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- this set will be used to return the working set of item attributes to default so that<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; recalculation of final modified attributes can be made, hopefully w/o need of reverse calcs<br/>
+</span>* CHECK: NO - do the dgmEffectsInfo and dgmEffectActions load entire table into a singleton object or only selections into each item type instance?<br/>
  &nbsp; &nbsp;- YES - DONE - should there be a singleton for each of these tables (and the new one below) that each item type instance should just build a map of pointers to objects inside the singleton's map<br/>
 * CHECK: NO do the dgmAttributes and dgmTypeAttributes also get loaded into singleton objects?<br/>
  &nbsp; &nbsp;- YES - should they?<br/>
