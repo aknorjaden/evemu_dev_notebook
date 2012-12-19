@@ -206,15 +206,23 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
 ************************************<br/>
 * UPDATE ALL AREAS where Missing attributes are added to attribute maps of Ship, NPC, etc class objects to add those same attributes with their default values to the Default Attribute Map<br/>
 <br/>
-* IMPLEMENT GetDefaultAttribute() &nbsp;methods on InventoryItem, Ship, etc classes<br/>
+* DONE - IMPLEMENT GetDefaultAttribute() &nbsp;methods on InventoryItem, Ship, etc classes<br/>
 <br/>
 * MAKE STUBS for ALL MISSING server calls new in Crucible<br/>
+ &nbsp; &nbsp;- activate<br/>
+ &nbsp; &nbsp;- oveload<br/>
+ &nbsp; &nbsp;- load charge<br/>
+ &nbsp; &nbsp;- deactivate<br/>
+ &nbsp; &nbsp;- unload charge<br/>
 <br/>
 * MAKE WORK flagAutoFit functionality<br/>
  &nbsp; &nbsp;- study server call that is invoked upon attempting to auto-fit a module<br/>
  &nbsp; &nbsp;- need method to call on Ship -&gt; ModuleManager -&gt; ModuleContainer to find an unused slot<br/>
- &nbsp; &nbsp; &nbsp; on the same bank as the module would be fitted to --- must query module effects for slot ID<br/>
+ &nbsp; &nbsp; &nbsp; on the same bank as the module would be fitted to<br/>
+ &nbsp; &nbsp; &nbsp; MUST query module effects for slot ID: loPowr, medPower, or hiPower<br/>
  &nbsp; &nbsp;- with new flag value, begin normal fitting procedures<br/>
+ &nbsp; &nbsp;- IF there are NO available slots in the desired bank, then return error to client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- how do we do that?<br/>
 <br/>
 * FIX the fact that Module Online/Offline state is somehow not stored/loaded from the database<br/>
  &nbsp; &nbsp;- first check to see if a log off or server restart is needed to reproduce this problem<br/>
