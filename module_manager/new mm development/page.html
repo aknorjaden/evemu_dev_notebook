@@ -205,6 +205,14 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
 * TEST / BUG FIX - POST-DATA ENTRY:<br/>
 ************************************<br/>
 * UPDATE ALL AREAS where Missing attributes are added to attribute maps of Ship, NPC, etc class objects to add those same attributes with their default values to the Default Attribute Map<br/>
+ &nbsp; &nbsp;- PROBLEM: Default attribute map does not get loaded fromj anywhere, nor are its contnts stored<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- SOLUTION:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- create new table 'entity_default_attributes' which will hold item default attributes<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- change AttributeMap to take another parameter in another constructor that indicates<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; it should use either regular or default entity attributes table for load/store/query ops<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- SetAttribute() methods should take optional parameter at end of param list that indicates<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; an override to shadow copy the attribute creation/modify operation to the default map<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; as welll as the regular map<br/>
 <br/>
 * DONE - IMPLEMENT GetDefaultAttribute() &nbsp;methods on InventoryItem, Ship, etc classes<br/>
 <br/>
