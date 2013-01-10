@@ -7,6 +7,12 @@
  &nbsp; &nbsp;USE CASES<br/>
 ==============================================<br/>
 <br/>
+<br/>
+========= &nbsp; &nbsp; THIS WHOLE PAGE IS DEPRECATED &nbsp; &nbsp; ========<br/>
+find up to date info on module use cases at the following website<br/>
+http://wiki.evemu.org<br/>
+<br/>
+<br/>
 USE CASE: ?<br/>
 --------------------------------------------------<br/>
 CLIENT:<br/>
@@ -27,7 +33,7 @@ CLIENT:<br/>
 <br/>
 <br/>
 <br/>
-USE CASE: FIT MODULE TO SHIP:<br/>
+USE CASE: FIT MODULE TO SHIP - SLOT IS SPECIFIED<br/>
 --------------------------------------------------<br/>
 * ERROR SCENARIOS - &nbsp;Fit module<br/>
  &nbsp;- insufficient skills ==&gt; module NOT fitted<br/>
@@ -35,13 +41,78 @@ USE CASE: FIT MODULE TO SHIP:<br/>
  &nbsp;- insufficient power or cpu ==&gt; module fitted, but NOT onlined<br/>
 &gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
 CLIENT:<br/>
-* User drags a module from either cargo, station items, cargo container in space or not, or a corp maint. array at a POS within range of a ship maint. array to Fitting Window on specific slot or middle of fitting window, in which case client picks slot to put it in<br/>
+* User drags a module from either cargo, station items, cargo container in space or not, or a corp maint. array at a POS within range of a ship maint. array to Fitting Window on specific slot<br/>
 - client sends InventoryBound Add cmd packet<br/>
  &nbsp; &nbsp;SERVER:<br/>
  &nbsp; &nbsp;- add cmd packet received<br/>
  &nbsp; &nbsp;* InventoryBound::Handle_Add()<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- Packet decoded for itemID, flag, action (fit, unfit, etc)<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- call to InventoryBound::_ExecAdd()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module being moved from an inventory to the ship's inventory<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Call made to Ship::FitModule() with itemID, flag, and action info<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Ship::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- create new instance of ModuleAction<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to ModuleManager::FitModule() with itemID, flag, and pointer to<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* ModuleManageer::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Check for slot indicated by flag value for occupancy<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF slot not empty, THEN RETURN FALSE w/ ERROR to Client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- If a high power slot module (call module method to check), then check if module is a<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; turret or a missile launcher and if either one applies, check to see if there are any more<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; slots of that type available on the ship<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF no slots of that type are available, THEN RETURN FALSE w/ ERROR to client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Call made to GenericModule::Fit() with pointer to ModuleAction object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* GenericModule::Fit()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Validate skills to fit module<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF validate fails, THEN RETURN FALSE w/ ERROR to Client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Validate that ship does not have maximum allowed amount of this module type/<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;group already fitted<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF validate fails, THEN RETURN FALSE w/ ERROR to Client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Q. Does module mass get added to ship mass at fit or only at online?<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;+ A. module mass added at ____, some may have additional mass added on<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; activate<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Change module state to Fitted<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// GenericModule::Fit()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF return is FALSE, THEN RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Change module flag to slot flag<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Insert module &lt;flag, GenericModule *&gt; pair into appropriate slot bank in Ship object<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// ModuleManager::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- IF return is FALSE, THEN destroy ModuleAction object and RETURN FALSE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Add &lt;groupID, 1&gt; to groupsByFitted container OR if group exists, increment 'second'<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- *** Query ModuleAction object for any actions to take<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- RETURN TRUE &nbsp;// Ship::FitModule()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Module is moved from existing inventory to ship inventory with flag set to target slot<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- RETURN OK to Client<br/>
+*** END USE CASE ***<br/>
+<br/>
+<br/>
+USE CASE: FIT MODULE TO SHIP - SLOT IS NOT SPECIFIED --&gt; AUTO-FIT<br/>
+--------------------------------------------------<br/>
+* ERROR SCENARIOS - &nbsp;Fit module<br/>
+ &nbsp;- insufficient skills ==&gt; module NOT fitted<br/>
+ &nbsp;- insufficient slots available, or unsupported ship type ==&gt; module NOT fitted<br/>
+ &nbsp;- insufficient power or cpu ==&gt; module fitted, but NOT onlined<br/>
+&gt;&gt;&gt; BEGIN USE CASE &lt;&lt;&lt;<br/>
+CLIENT:<br/>
+* User drags a module from either cargo, station items, cargo container in space or not, or a corp maint. array at a POS within range of a ship maint. array to the Middle of the Fitting Window, in which case the Server finds a slot, if one is free, in the correct slot bank for the specified module and returns the flag value for that slot to the client, then the bServer attempts to fit the module.<br/>
+ &nbsp; &nbsp; Q. Doees the client still call Add after ikt gets slot flag from server or does the server just proceed with fitting?<br/>
+- client sends InventoryBound Add cmd packet<br/>
+ &nbsp; &nbsp;SERVER:<br/>
+ &nbsp; &nbsp;- add cmd packet received<br/>
+ &nbsp; &nbsp;* InventoryBound::Handle_Add()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Packet decoded for itemID, flag, action (fit, unfit, etc)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- call to InventoryBound::_ExecAdd()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- flag is AutoFit, or 0, so call<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- Ship::GetNextAvailableSlot() passing in the module itemID<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Ship::GetNextAvailableSlot()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- call ModuleManager::GetNextAvailableSlot()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* ModuleManager::GetNextAvailableSlot()<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- determine which slot bank the module belogs to<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- check ModuleContainer object for available slots on that bank<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- if none, return 0 else return the flag value for the slot<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- return the slot value<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- return the slot value<br/>
+Q. does this get returned to client OR just proceed with fitting attempt?<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- Module being moved from an inventory to the ship's inventory<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- Call made to Ship::FitModule() with itemID, flag, and action info<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Ship::FitModule()<br/>

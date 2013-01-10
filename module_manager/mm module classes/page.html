@@ -8,7 +8,21 @@
  &nbsp;MODULE CLASS DESIGN COMPOSITION AND HEIRARCHY<br/>
 =====================================================<br/>
 <br/>
-*** MODULE CLASSES: These classes are responsible for checking character skills to validate use of the module, applying applicable skills' bonuses to each modules' bonuses, checking existing fitted similar modules and applying bonus penalties, managing activation and effect timers, owning the loaded charges and consuming them on each cycle, and keeping track of the damage of the module to determine if it is destroyed.<br/>
+*** MODULE CLASSES: These classes are responsible for checking character skills to validate use of the module, applying applicable skills' bonuses to each modules' bonuses, checking existing fitted similar modules and applying bonus penalties, managing activation and effect timers, owning the loaded charges and consuming them on each cycle, and keeping track of the damage of the module to determine if it is destroyed by overload heat damage.<br/>
+<br/>
+<br/>
+*** RELATIONSHIPS OF OBJECTS<br/>
+Clients HAVE Characters and Ships<br/>
+Ships HAVE Ship Modules<br/>
+most Ships HAVE High Slots, Medium Slots, Low Slots, Rig Slots<br/>
+some Ships HAVE Subsystem Slots<br/>
+Ship Modules HAVE Effects<br/>
+some Ship Modules HAVE Activation/Deactivation Timers<br/>
+some Ship Modules HAVE Charges that get consumed on each timer cycle<br/>
+Subsystem IS A Ship Module<br/>
+Subsystems AFFECT Slot configuration of a Ship<br/>
+Subsystems AFFECT Ship Attributes<br/>
+Ship Modules AFFECT Ship Attriibutes<br/>
 <br/>
 <br/>
 CLASS ModuleAction - this class is a message container that can hold info about any type of action that a single module can take either on the ship on which it is fitted, or any external targetable object be it another ship, a drone, or any destructable structure or celestial object<br/>
@@ -64,7 +78,7 @@ protected<br/>
 ----<br/>
 private<br/>
  &nbsp;+ PyTuple * m_pGfxPacket &nbsp;// we do not own this<br/>
- &nbsp;+ AttrMap m_MyShipAttributeModifiers<br/>
+ &nbsp;+ ModifierMap m_MyShipAttributeModifiers<br/>
  &nbsp;+ bool m_IsOverloadDamage<br/>
  &nbsp;+ std::vector&lt;uint32, double&gt; m_OverloadDamageBySlotOffset<br/>
  &nbsp;+ bool m_DidShipCloak<br/>
@@ -73,7 +87,7 @@ private<br/>
  &nbsp;+ double m_ThermalAttackDamage<br/>
  &nbsp;+ double m_KineticAttackDamage<br/>
  &nbsp;+ double m_ExplosiveAttackDamage<br/>
- &nbsp;+ AttrMap m_TargetAttributeModifiers<br/>
+ &nbsp;+ ModifierMap m_TargetAttributeModifiers<br/>
  &nbsp;+ bool m_IsTargetRepaired<br/>
  &nbsp;+ double m_AddShieldHP<br/>
  &nbsp;+ double m_AddArmorHP<br/>
@@ -85,9 +99,9 @@ private<br/>
  &nbsp;+ bool m_IsEnergyTransferred<br/>
  &nbsp;+ double m_EnergyTransferred<br/>
  &nbsp;+ bool m_AreThereWarfareLinkBonuses<br/>
- &nbsp;+ AttrMap m_WarfareLinkBonuses<br/>
+ &nbsp;+ ModifierMap m_WarfareLinkBonuses<br/>
  &nbsp;+ bool m_AreThereMiningLinkBonuses<br/>
- &nbsp;+ AttrMap m_MiningLinkBonuses<br/>
+ &nbsp;+ ModifierMap m_MiningLinkBonuses<br/>
  &nbsp;+ bool m_IsCynoLit<br/>
  &nbsp;+ uint32 m_CynoType<br/>
  &nbsp;+ bool m_IsJumpPortalActive<br/>
@@ -112,9 +126,9 @@ private<br/>
 <br/>
 <br/>
 // this class will handle automatic loading of effects for an item, if any, and provide public access functions for getting a reference to an Effect object which gives access to in-memory fields from the dgmEffects table for the selected effect<br/>
-** ModuleEffect - container for all fields of data found in one row of the dgmEffects DB table<br/>
-** EffectsTable - one single memory object containing the complete list of effects found in the dgmEffects DB table, searchable by effectID returning a pointr to a ModuleEffect object<br/>
-** EffectsMap - container that has list of effects found for a specific item type, integrated into the item type container, not the inventory item class, and only contains a list of effectID values paired with the pointer to the corresponding ModuleEffect object. &nbsp;This save time that would have been spent running a std::map,&lt;&gt; find() call<br/>
+** Effect - container for all fields of data found in one row of the dgmEffects DB table<br/>
+** EffectsTable - one single memory object containing the complete list of effects found in the dgmEffects DB table, searchable by effectID returning a pointr to an Effect object<br/>
+** EffectsMap - container that has list of effects found for a specific item type, integrated into the item's final derived class, as needed, not the inventory item class, and only contains a std::map&lt;&gt; of effectID values paired with the pointer to the corresponding Effect object. &nbsp;For example, for any Module, the GenericModule base class has a protected inheritable member variable of EffectsMap, so all Module classes will inherit this and be able to use it. &nbsp;Other specific cases will be Ship, Drone, NPC, Charge, or any other class representing an item type/group that has effects.<br/>
 <br/>
 <br/>
 Modules: online, offline, fit, unfit, activate, deactivate, load charge, unload charge, overload, de-overload - some modules may not have all of these<br/>
@@ -153,13 +167,14 @@ typedef enum {<br/>
 GenericModule &nbsp;// this is THE base class, it will contain virtual abstract functions for the entire<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;// suite of functions that any module might have on its public interface in<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;// order for polymorphism to work<br/>
- &nbsp;+ PassiveModule &nbsp;// all passive module group classes will derive from this<br/>
- &nbsp;+ ActiveModule<br/>
- &nbsp;+ ChargedModule<br/>
- &nbsp;+ TargetedChargedModule<br/>
- &nbsp;+ ChargedTargetedLauncherModule &nbsp;// these launch destiny objects (missiles) at destiny targets<br/>
- &nbsp;+ TargetedModule<br/>
- &nbsp;+ ChargedLauncherModule &nbsp;// these launch destiny objects: bombs, dictor sheres, probes<br/>
+ &nbsp;+ PassiveModule &nbsp;// all passive module group classes will derive from this, if necessary<br/>
+ &nbsp;+ ActiveModule &nbsp;// all active modules will derive from this class<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- Composition Objects / Module Plugins (objects that extend functionality)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- AttributeModificationComponent<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- ActiveComponent<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- ChargeComponent<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- TargetingComponent<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- LauncherComponent<br/>
  &nbsp;+ RigModule<br/>
  &nbsp;+ SubSystemModule<br/>
  &nbsp; &nbsp;- DefensiveSubSystemModule<br/>
@@ -167,12 +182,6 @@ GenericModule &nbsp;// this is THE base class, it will contain virtual abstract 
  &nbsp; &nbsp;- EngineerignSubSystemModule<br/>
  &nbsp; &nbsp;- PropulsionSubSystemModule<br/>
  &nbsp; &nbsp;- OffensiveSubsystemModule<br/>
-<br/>
-Components<br/>
- &nbsp;+ ActiveComponent<br/>
- &nbsp;+ TargetingComponent<br/>
- &nbsp;+ LauncherComponent<br/>
- &nbsp;+ ChargeComponent<br/>
 <br/>
 <br/>
 // This class <br/>
@@ -239,55 +248,6 @@ protected<br/>
  &nbsp;- Timer m_CycleTimer<br/>
 <br/>
 <br/>
-ChargedModule : public ActiveModule<br/>
-// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
-public<br/>
- &nbsp;- none<br/>
-----<br/>
-protected<br/>
- &nbsp;- InventoryItemRef m_pLoadedCharge &nbsp;// we own this; it is consumed each cycle this module runs<br/>
-<br/>
-<br/>
-TargetedChargedModule : ChargedModule<br/>
-// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
-public<br/>
- &nbsp;- none<br/>
-----<br/>
-protected<br/>
- &nbsp;- SystemEntity * m_pTargetEntity &nbsp;// we do not own this<br/>
-<br/>
-<br/>
-// these do not launch destiny objects<br/>
-ChargedTargetedLauncherModule : public TargetedChargedModule<br/>
-// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
-public<br/>
- &nbsp;- none<br/>
-----<br/>
-protected<br/>
- &nbsp;- none<br/>
-<br/>
-<br/>
-// this class avoids multiple inheritance and just ignores the use of charges<br/>
-TargetedModule : public TargetedChargedModule<br/>
-// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
-public<br/>
- &nbsp;- none<br/>
-----<br/>
-protected<br/>
- &nbsp;- none<br/>
-<br/>
-<br/>
-// these launch destiny objects: bombs, dictor sheres, probes<br/>
-ChargedLauncherModule : public ChargedModule<br/>
-// entire set of public interface functions inherited from base class to ensure polymorphism<br/>
-public<br/>
- &nbsp;- none<br/>
-----<br/>
-protected<br/>
- &nbsp;- SystemEntity * _CreateDestinyObject()<br/>
- &nbsp;- SystemManager * m_pSystemManager &nbsp;// we do not own this; used to put probes, dictor spheres, bombs ito space<br/>
-<br/>
-<br/>
 RigModule : public PassiveModule<br/>
 // entire set of public interface functions inherited from base class to ensure polymorphism<br/>
 public<br/>
@@ -305,17 +265,5 @@ public<br/>
 protected<br/>
  &nbsp;- none<br/>
 <br/>
-<br/>
-Clients HAVE Characters and Ships<br/>
-Ships HAVE Ship Modules<br/>
-most Ships HAVE High Slots, Medium Slots, Low Slots, Rig Slots<br/>
-some Ships HAVE Subsystem Slots<br/>
-Ship Modules HAVE Effects<br/>
-some Ship Modules HAVE Activation/Deactivation Timers<br/>
-some Ship Modules HAVE Charges that get consumed on each timer cycle<br/>
-Subsystem IS A Ship Module<br/>
-Subsystems AFFECT Slot configuration of a Ship<br/>
-Subsystems AFFECT Ship Attributes<br/>
-Ship Modules AFFECT Ship Attriibutes<br/>
 <br/>
 </body></html>

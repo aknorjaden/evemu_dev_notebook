@@ -204,7 +204,7 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
 ************************************<br/>
 * TEST / BUG FIX - POST-DATA ENTRY:<br/>
 ************************************<br/>
-* UPDATE ALL AREAS where Missing attributes are added to attribute maps of Ship, NPC, etc class objects to add those same attributes with their default values to the Default Attribute Map<br/>
+* DONE - UPDATE ALL AREAS where Missing attributes are added to attribute maps of Ship, NPC, etc class objects to add those same attributes with their default values to the Default Attribute Map<br/>
  &nbsp; &nbsp;- PROBLEM: Default attribute map does not get loaded fromj anywhere, nor are its contnts stored<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- SOLUTION:<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- create new table 'entity_default_attributes' which will hold item default attributes<br/>
@@ -223,6 +223,27 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
  &nbsp; &nbsp;- deactivate<br/>
  &nbsp; &nbsp;- unload charge<br/>
 <br/>
+* DONE - INVESTIGATE supposed attributes not being saved to the database for some or all objects<br/>
+ &nbsp; &nbsp;- InventoryItem::SaveItem() method should be being called by all derived objects - CHECK<br/>
+ &nbsp; &nbsp; &nbsp; on Asteroid, Skill, Ship, Module, Charge, Character, Drone, Blueprint<br/>
+ &nbsp; &nbsp;- Interesting thought is that each item will HAVE to derive from IventoryItem to get their attribs<br/>
+ &nbsp; &nbsp; &nbsp; saved to DB because the derived object is responsible for invoking SaveItem()<br/>
+ &nbsp; &nbsp;-------- each class that derives from InventoryItem is responsible for invoking SaveItem() on<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; its own terms be they destructor, timer, etc<br/>
+<br/>
+* ADAPT EVEHQ Resource file Effects.csv for our uses in database tables<br/>
+ &nbsp; &nbsp;- still requires link between effectID and these rows in that file, each line should have effectID<br/>
+<br/>
+* ADAPT EVEHQ Resource file ShipBonuses.csv for our uses in database tables<br/>
+* ADAPT EVEHQ Resource file SkillBonuses.csv for our uses in database tables<br/>
+* ADAPT EVEHQ Resource file Subsytems.csv for our uses in database tables<br/>
+* ADAPT EVEHQ Resource file Implants.csv for our uses in database tables<br/>
+* ADAPT EVEHQ Resource file ???.csv for our uses in database tables<br/>
+<br/>
+* CHANGE Modue State ENUM values to match those in EVEHQ<br/>
+<br/>
+* CHANGE Effect / Bonus Calculation Type ENUM values to match EVEHQ<br/>
+<br/>
 * MAKE WORK flagAutoFit functionality<br/>
  &nbsp; &nbsp;- study server call that is invoked upon attempting to auto-fit a module<br/>
  &nbsp; &nbsp;- need method to call on Ship -&gt; ModuleManager -&gt; ModuleContainer to find an unused slot<br/>
@@ -236,74 +257,13 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
  &nbsp; &nbsp;- first check to see if a log off or server restart is needed to reproduce this problem<br/>
  &nbsp; &nbsp;- whenever i log off with modules fitted and onlined, then log back in, the modules are offline<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- check to see if onlining is working correctly i the server as well as database and packets to client<br/>
- <br/>
-* RESEARCH PACKET LOGS for MODULES: Review all actions of a Passive module as captured in eve live packet capture logs (INCURSION and CRUCIBLE)and note each packet type and outer structure and the Service Call to the server that was made<br/>
- &nbsp; &nbsp;+ Fit module (automatic online subsequent to fitting provided sufficient cpu &amp; power)<br/>
- &nbsp; &nbsp;+ Unfit module<br/>
- &nbsp; &nbsp;+ Online module<br/>
- &nbsp; &nbsp;+ Offline module<br/>
- &nbsp; &nbsp;+ Activate module<br/>
- &nbsp; &nbsp;+ Deactivate module<br/>
- &nbsp; &nbsp;+ Overload module<br/>
- &nbsp; &nbsp;+ Load Charge into module<br/>
- &nbsp; &nbsp;+ Unload Charge from module<br/>
- &nbsp; &nbsp;+ Reload Charge into module<br/>
 <br/>
- &nbsp; &nbsp;- DONE - IMPORTANT: Fix PasswordModule.cpp's GeneraePasswordHas() from crashing<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;----&gt; re-test API Server calls w/ EFT and EVEmon<br/>
- &nbsp; &nbsp;- test loading of database info from all new dgmXXX tables into the Singleton-derived memory<br/>
- &nbsp; &nbsp; &nbsp; objects<br/>
- &nbsp; &nbsp;- test linkages from actual ship, module, and skill instance objects to these singleton objects<br/>
- &nbsp; &nbsp;- start implementing some test case uses of attribute bonuses and make test calculations with them<br/>
- &nbsp; &nbsp;- start implementing the reverse calculations of these same bonuses when modules are<br/>
- &nbsp; &nbsp; &nbsp; unfitted/offlined or ship is disembarked<br/>
- &nbsp; &nbsp;-OR-<br/>
- &nbsp; &nbsp;- implement effective reversal of module, ship, skill modifications by applying default attribute to<br/>
- &nbsp; &nbsp; &nbsp; the dynamic attribute map and recalculate the entire modifier from scratch whenever the<br/>
- &nbsp; &nbsp; &nbsp; set of modifiers for an attribute is changed<br/>
-<br/>
-* TEST/DEMO: can you quickly code up capability forr a bunch of modules to show GFX effects?<br/>
- &nbsp; &nbsp;- make ActiveModule class put itself online properly then on Activate, send gfx effect pkt<br/>
-<br/>
-* EXPAND: ModuleContainer needs another std:mEW - std::map&lt;Ev to a ship?<br/>
- &nbsp; &nbsp;- comparison of live crucible logs to sisi incarna logs reveal:<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;+ live sends 'OnItemsChanged', evemu sendppens on fittting a module<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- DONE Nen flag value is 'in space'<br/>
-<br/>
-* EXPAND: ModuleContainer needs another std:mEW - std::map&lt;Ev to a ship?<br/>
- &nbsp; &nbsp;- comparison of livs 'OnItemChanged', notice the plural on live<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;+ live sends 'OnItemsChanged' once for change of inventory, then a second for change in flag<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;+ NEXT - ShipGetInfo response by evemu server does not match eve live's 'util.KeyVal' structure<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;+ FIXED - client calls ItemGetInfo, live returns a 'util.KeyVal' packet, evemu returns a 'util.Row'<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;packet of a rather different format<br/>
-<br/>
- &nbsp; &nbsp;- make use of this container whap,. using itemID as key, not flag, to allow POS modules to use the ModuleManager class when instantiated on a control tower<br/>
-<br/>
-* CAPTURE: get eve live packets for onlining and offlining modules while in space. &nbsp;Use TWO characters with one targeting the other and on/off-line 1600mm plates<br/>
-* COMPARE: identify any differences between crucible/incursion logs when fitting, unfitting, onlining, and offlining. &nbsp;then, itemize work items here:<br/>
- &nbsp; &nbsp;- ?<br/>
-<br/>
-* IMPLEMENT: PassiveModule: code up the changes in module state that will be needed when effects processing is implemented.<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- DONE NEW - std::map&lt;EvilNumber, ModifierRef&gt; ModifierMap<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- DONE NEW - std::map&lt;uint32 attributeID, ModifierMap * modiifierMap&gt; ModifierMaps<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- DONE NEW - need a std::map&lt;&gt; of class objects for storing these values:<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;1. (uint32) target attribute ID<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;2. (uint32) targetID (self, charges, other modules onboard, ship, external target)<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;3. (EvilNumber) modifier value<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;4. (uint32) calculation type ID<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;5. (uint32) reverse calculation type ID<br/>
- &nbsp; &nbsp;- DONE NEW &nbsp;need 'dirty' booleans for each modifier map (one for each attributeID)<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- 'dirty' = true means MM should recalculate modifiers of that attribute<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;---&gt; need new class ModifierMap to contain actual map and the dirty flag<br/>
- &nbsp; &nbsp;- DONE NEW - std::map&lt;uint32 attributeID, Modifier * modifierRef&gt; SubsystemModifiers<br/>
- &nbsp; &nbsp;- DONE NEW - std::map&lt;uint32 attributeID, Modifier * modifierRef&gt; SkillModifiers<br/>
- &nbsp; &nbsp;- DONEe NEW - std::map&lt;uint32 attributeID, Modifier * modifierRef&gt; ModuleRigModifiers<br/>
- &nbsp; &nbsp;- DONE NEW - std::map&lt;uint32 attributeID, Modifier * modifierRef&gt; ImplantModifiers<br/>
- &nbsp; &nbsp;- DONE NEW - int32 ApplyRemoteEffect(uint32 attributeID, SystemEntiryRef entity, ModifierRef mod)<br/>
- &nbsp; &nbsp;- DONE NEW - int32 RemoveRemoteEffect(uint32 attributeID, ModifierRef mod)<br/>
- &nbsp; &nbsp;- NEW - int32 GetEffec<br/>
+* EFT STUDY OF ATTRIBUTE CHANGES ACROSS ALL POSSIBLE SOURCES AND CONFIGURATIONS:<br/>
  &nbsp; &nbsp;- module modifiers, ship bonuses, skill bonuses, and implant bonuses are all accumulated<br/>
  &nbsp; &nbsp; &nbsp; according to the following rules:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;----- &gt; RE-VERIFY THESE RULES IN EFT AGAIN USING SOME ATTRIBUTE TEST CASE<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; such as max velocity or armor/shield resonances, something that will have Ship,<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Skill, Module Passive, Module Active and Implants all making changes<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;*** Negative affecting modules/rigs are accounted separately from positive affecting modules<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;when applying stacking penalties AND their negative effects are applied AFTER all<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;positive effects are applied<br/>
@@ -347,6 +307,68 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (100% - 1%)<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; (3) aggregate and apply rig bonuses: <br/>
 <br/>
+* NEXT STEPS OF DEVELOPMENT OF MODULES OPERATIONS<br/>
+ &nbsp; &nbsp;- DONE - IMPORTANT: Fix PasswordModule.cpp's GeneraePasswordHas() from crashing<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;----&gt; re-test API Server calls w/ EFT and EVEmon<br/>
+ &nbsp; &nbsp;- test loading of database info from all new dgmXXX tables into the Singleton-derived memory<br/>
+ &nbsp; &nbsp; &nbsp; objects<br/>
+ &nbsp; &nbsp;- test linkages from actual ship, module, and skill instance objects to these singleton objects<br/>
+ &nbsp; &nbsp;- start implementing some test case uses of attribute bonuses and make test calculations with them<br/>
+ &nbsp; &nbsp;- implement effective reversal of module, ship, skill modifications by applying default attribute to<br/>
+ &nbsp; &nbsp; &nbsp; the dynamic attribute map and recalculate the entire modifier from scratch whenever the<br/>
+ &nbsp; &nbsp; &nbsp; set of modifiers for an attribute is changed<br/>
+<br/>
+----&gt;&gt;&gt;&gt; Assigned to Reve<br/>
+* RESEARCH PACKET LOGS for MODULES: Review all actions of a Passive module as captured in eve live packet capture logs (INCURSION and CRUCIBLE)and note each packet type and outer structure and the Service Call to the server that was made<br/>
+ &nbsp; &nbsp;+ Fit module (automatic online subsequent to fitting provided sufficient cpu &amp; power)<br/>
+ &nbsp; &nbsp;+ Unfit module<br/>
+ &nbsp; &nbsp;+ Online module<br/>
+ &nbsp; &nbsp;+ Offline module<br/>
+ &nbsp; &nbsp;+ Activate module<br/>
+ &nbsp; &nbsp;+ Deactivate module<br/>
+ &nbsp; &nbsp;+ Overload module<br/>
+ &nbsp; &nbsp;+ Load Charge into module<br/>
+ &nbsp; &nbsp;+ Unload Charge from module<br/>
+ &nbsp; &nbsp;+ Reload Charge into module<br/>
+<br/>
+* EXPAND: ModuleContainer needs another std:mEW - std::map&lt;Ev to a ship?<br/>
+ &nbsp; &nbsp;- comparison of live crucible logs to sisi incarna logs reveal:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ live sends 'OnItemsChanged', evemu sendppens on fittting a module<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE Nen flag value is 'in space'<br/>
+<br/>
+* EXPAND: ModuleContainer needs another std:mEW - std::map&lt;Ev to a ship?<br/>
+ &nbsp; &nbsp;- comparison of livs 'OnItemChanged', notice the plural on live<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ live sends 'OnItemsChanged' once for change of inventory, then a second for change in flag<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ NEXT - ShipGetInfo response by evemu server does not match eve live's 'util.KeyVal' structure<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;+ FIXED - client calls ItemGetInfo, live returns a 'util.KeyVal' packet, evemu returns a 'util.Row'<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;packet of a rather different format<br/>
+<br/>
+ &nbsp; &nbsp;- make use of this container whap,. using itemID as key, not flag, to allow POS modules to use the ModuleManager class when instantiated on a control tower<br/>
+<br/>
+* CAPTURE: get eve live packets for onlining and offlining modules while in space. &nbsp;Use TWO characters with one targeting the other and on/off-line 1600mm plates<br/>
+* COMPARE: identify any differences between crucible/incursion logs when fitting, unfitting, onlining, and offlining. &nbsp;then, itemize work items here:<br/>
+ &nbsp; &nbsp;- ?<br/>
+<br/>
+* IMPLEMENT: PassiveModule: code up the changes in module state that will be needed when effects processing is implemented.<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE NEW - std::map&lt;EvilNumber, ModifierRef&gt; ModifierMap<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE NEW - std::map&lt;uint32 attributeID, ModifierMap * modiifierMap&gt; ModifierMaps<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- DONE NEW - need a std::map&lt;&gt; of class objects for storing these values:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;1. (uint32) target attribute ID<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;2. (uint32) targetID (self, charges, other modules onboard, ship, external target)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;3. (EvilNumber) modifier value<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;4. (uint32) calculation type ID<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;5. (uint32) reverse calculation type ID<br/>
+ &nbsp; &nbsp;- DONE NEW &nbsp;need 'dirty' booleans for each modifier map (one for each attributeID)<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- 'dirty' = true means MM should recalculate modifiers of that attribute<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;---&gt; need new class ModifierMap to contain actual map and the dirty flag<br/>
+ &nbsp; &nbsp;- DONE NEW - std::map&lt;uint32 attributeID, Modifier * modifierRef&gt; SubsystemModifiers<br/>
+ &nbsp; &nbsp;- DONE NEW - std::map&lt;uint32 attributeID, Modifier * modifierRef&gt; SkillModifiers<br/>
+ &nbsp; &nbsp;- DONEe NEW - std::map&lt;uint32 attributeID, Modifier * modifierRef&gt; ModuleRigModifiers<br/>
+ &nbsp; &nbsp;- DONE NEW - std::map&lt;uint32 attributeID, Modifier * modifierRef&gt; ImplantModifiers<br/>
+ &nbsp; &nbsp;- DONE NEW - int32 ApplyRemoteEffect(uint32 attributeID, SystemEntiryRef entity, ModifierRef mod)<br/>
+ &nbsp; &nbsp;- DONE NEW - int32 RemoveRemoteEffect(uint32 attributeID, ModifierRef mod)<br/>
+ &nbsp; &nbsp;- NEW - int32 GetEffec<br/>
+<br/>
 * STUDY: Examine the ModuleAttributeChangeComponent class, determine how it works. &nbsp;Then figure out how it should be used in ::Process() to bring about attribute changes due to effects applied based on the current module state.PassiveModule<br/>
 * work on implementing Power Grid and CPU checking Before 'approving' module to go Online<br/>
  &nbsp; &nbsp;- check power and cpu available against required<br/>
@@ -354,8 +376,9 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
 * work on implementing application of effects onto ship attributes when module is Onlined<br/>
 * work on implementing removal of effects from ship attributes when module is Offlined<br/>
  &nbsp; &nbsp;- this includes restorration to the ship's power and cpu attributes<br/>
-* how do we maintain the ship and each modulesttributes unmodified by skill bonuses?<br/>
- &nbsp; &nbsp;- MAYBE WE DON'T? &nbsp;JUST SAVE THEM TO THE DATABASE, AND DE-EMBED THEM WHEN YOU DISEMBARK A SHIP<br/>
+* SOLVED - how do we maintain the ship and each modulesttributes unmodified by skill bonuses?<br/>
+ &nbsp; &nbsp;---&gt; we have default attribute maps now, so when disembarking a ship, its entity_attributes table<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; entries just get overwritten by those from entity_default_attributes table<br/>
 * implement new code to handle' base a setting the target object for the effect<br/>
 * implement new code to handle applying the effect during the designated module state<br/>
  &nbsp; &nbsp;1) effects that go active in ACTIVE state will REMAIN in effect in OVERLOAD as well<br/>
@@ -438,7 +461,7 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; the fraction of available charge over the cap need for whole warp distance, then multiply<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; that fraction by the whole warp distance and calculate then partial warp sending that to the<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; client along with the error about insufficient cap charge for warp (packet log for this error)<br/>
-* choose an enum value in calculation type enum to make reverse calculation in the dgmEffectsInfo table and in the Effects code mean that the server automatically sets the reverse calculation type. &nbsp;otherwise, use the reverse calculation type loaded from the DB table dgmEffectsInfo<br/>
+* NO - choose an enum value in calculation type enum to make reverse calculation in the dgmEffectsInfo table and in the Effects code mean that the server automatically sets the reverse calculation type. &nbsp;otherwise, use the reverse calculation type loaded from the DB table dgmEffectsInfo<br/>
 * EXPAND: Charges do have effects, so the Module Component that manages charges for the Active Modules that use charges will need an instance of the Effects container / manager class<br/>
 <br/>
 * QUICK: Future-proof use of ModuleManager for POS structures in groupIDs in categoryID = 23 and celestial groupIDs = 336, but there are a bunch of guns in entity categoryID with groupID = 383, 180, 99 that have no attributes, but have a couple effects (how does the server know which weapon effect and damage to apply? -- going to have to packet log high-sec sentry guns firing, and mission and anomaly/signature sites guns firing<br/>
