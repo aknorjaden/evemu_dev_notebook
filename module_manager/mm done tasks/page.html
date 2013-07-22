@@ -5,7 +5,46 @@
 <title>MM Done Tasks</title>
 </head><body><br/>
 *** DONE ***<br/>
-<span style="font-family: Droid Sans"> &nbsp; &nbsp;- DONE - FIRST: implement another attribute map in the InventoryItem class to store DEFAULT set<br/>
+<span style="font-family: Droid Sans">* DONE - UPDATE ALL AREAS where Missing attributes are added to attribute maps of Ship, NPC, etc class objects to add those same attributes with their default values to the Default Attribute Map<br/>
+ &nbsp; &nbsp;- PROBLEM: Default attribute map does not get loaded fromj anywhere, nor are its contnts stored<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- SOLUTION:<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- create new table 'entity_default_attributes' which will hold item default attributes<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- change AttributeMap to take another parameter in another constructor that indicates<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; it should use either regular or default entity attributes table for load/store/query ops<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- SetAttribute() methods should take optional parameter at end of param list that indicates<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; an override to shadow copy the attribute creation/modify operation to the default map<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; as welll as the regular map<br/>
+<br/>
+* DONE - IMPLEMENT GetDefaultAttribute() &nbsp;methods on InventoryItem, Ship, etc classes<br/>
+<br/>
+* DONE - INVESTIGATE supposed attributes not being saved to the database for some or all objects<br/>
+ &nbsp; &nbsp;- InventoryItem::SaveItem() method should be being called by all derived objects - CHECK<br/>
+ &nbsp; &nbsp; &nbsp; on Asteroid, Skill, Ship, Module, Charge, Character, Drone, Blueprint<br/>
+ &nbsp; &nbsp;- Interesting thought is that each item will HAVE to derive from IventoryItem to get their attribs<br/>
+ &nbsp; &nbsp; &nbsp; saved to DB because the derived object is responsible for invoking SaveItem()<br/>
+ &nbsp; &nbsp;-------- each class that derives from InventoryItem is responsible for invoking SaveItem() on<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; its own terms be they destructor, timer, etc<br/>
+<br/>
+* FORUMS:<br/>
+- DONE - write jan newsletter - "The Era of Reve"<br/>
+ &nbsp; &nbsp;- reminders: wiki.evemu.org is now our 'front' page, recent wiki/github changes now on wiki front page, please ask in irc for wiki and forum accounts <br/>
+- UPDATE<br/>
+ &nbsp; &nbsp;- modules are progressing, got first one working, hacked,but working, credit Reve<br/>
+ &nbsp; &nbsp;- Reve foind source of bonus and effect linking in EVEHQ, nice job<br/>
+ &nbsp; &nbsp;- avatars are fully clothed, again thx to Reve<br/>
+ &nbsp; &nbsp;- all bug reports to be submitted to github issues page - (show template)<br/>
+<br/>
+* DONE - MAKE WORK flagAutoFit functionality<br/>
+ &nbsp; &nbsp;- study server call that is invoked upon attempting to auto-fit a module<br/>
+ &nbsp; &nbsp;- need method to call on Ship -&gt; ModuleManager -&gt; ModuleContainer to find an unused slot<br/>
+ &nbsp; &nbsp; &nbsp; on the same bank as the module would be fitted to<br/>
+ &nbsp; &nbsp; &nbsp; MUST query module effects for slot ID: loPowr, medPower, or hiPower<br/>
+ &nbsp; &nbsp;- with new flag value, begin normal fitting procedures<br/>
+ &nbsp; &nbsp;- IF there are NO available slots in the desired bank, then return error to client<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- how do we do that?<br/>
+ &nbsp; &nbsp;- ALSO: Does server attempt to online module or does client wait for auto-fit response?<br/>
+<br/>
+ &nbsp; &nbsp;- DONE - FIRST: implement another attribute map in the InventoryItem class to store DEFAULT set<br/>
  &nbsp; &nbsp; &nbsp; of the item's attributes UNMODIFIED and UNMODIFIABLE (if last one is possible - YES, DONE)<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- this set will be used to return the working set of item attributes to default so that<br/>
  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; recalculation of final modified attributes can be made, hopefully w/o need of reverse calcs<br/>

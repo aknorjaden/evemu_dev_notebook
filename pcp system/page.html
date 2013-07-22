@@ -27,6 +27,7 @@ REQUIREMENTS:<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- enabled - 0 if control disabled / 1 if control is enabled<br/>
 * make new API server calls that aid in setup of pcp chars and controller chars<br/>
  &nbsp; &nbsp;+ /char/SetPcpControllable.xml.aspx?charID=x&amp;fullApiKey=x&amp;controllerCharID&amp;enablControllable=1/0<br/>
+* prevent login attempts of characters that are already logged in under PCP control until those are logged out of PCP control<br/>
 <br/>
 <br/>
 ***** LIST OF SUPPORTED COMMANDS *****<br/>
@@ -39,17 +40,23 @@ ACCOUNT OPS:<br/>
 <br/>
 SHIP FLIGHT OPS:<br/>
 * /pcp undock &lt;char_name&gt;<br/>
-* /pcp dock &lt;char_name&gt; &lt;stationID&gt;/&lt;station_name&gt;<br/>
-* /pcp approach &lt;x,y,z&gt;|&lt;object_name&gt;|&lt;object_ID&gt;<br/>
-* /pcp align &lt;object_name&gt;|&lt;object_ID&gt;<br/>
-* /pcp orbit &lt;object_name&gt;|&lt;object_ID&gt; &lt;radius&gt;<br/>
-* /pcp warp &lt;object_name&gt;|&lt;object_ID&gt; &lt;distance&gt;<br/>
-* /pcp jump &lt;stargate_name&gt;|&lt;stargate_ID&gt;<br/>
+* /pcp dock &lt;char_name&gt; [&lt;stationID&gt;|&lt;station_name&gt;|nearest]<br/>
+* /pcp approach [&lt;x,y,z&gt;|&lt;object_name&gt;|&lt;object_ID&gt;]<br/>
+* /pcp align [&lt;object_name&gt;|&lt;object_ID&gt;]<br/>
+* /pcp orbit [&lt;object_name&gt;|&lt;object_ID&gt;] &lt;radius&gt;<br/>
+* /pcp warp [&lt;object_name&gt;|&lt;object_ID&gt;] &lt;distance&gt;<br/>
+* /pcp jump [&lt;stargate_name&gt;|&lt;stargate_ID&gt;|nearest]<br/>
 <br/>
 <br/>
 SHIP COMBAT OPS:<br/>
 * /pcp target lock [&lt;target_object_name&gt;|&lt;target_object_ID&gt;]<br/>
 * /pcp target unlock [&lt;target_object_name&gt;|&lt;target_object_ID&gt;]<br/>
+* /pcp activate [low|med|high] &lt;slot#&gt;<br/>
+* /pcp deactivate [low|med|high] &lt;slot#&gt;<br/>
+* /pcp overload [low|med|high] &lt;slot#&gt;<br/>
+* /pcp reload [med|high] &lt;slot#&gt;<br/>
+* /pcp load [med|high] &lt;slot#&gt; &lt;chargeID&gt;<br/>
+* /pcp unload [med|high] &lt;slot#&gt;<br/>
 <br/>
 <br/>
 DRONE CONTROL OPS:<br/>
@@ -88,6 +95,6 @@ FLEET OPS:<br/>
 * login boxes to login chars<br/>
 * filterable overview area used to manage targets w/ either right click menu for actions or an action bar at the top; actions: target, unlock, approach, orbit (select distance), etc<br/>
 * list of logged in and PCP client-managed player characters, columns for char name, ship, and progress bars for shield, armor, and structure/hull all in the same row<br/>
-<br/>
+ &nbsp; &nbsp;- i imagine each controlled ship's critical info (hull/armor/shield, slots, charges levels, etc) all arranged in a horizontal strip of controls and readouts that can be designed once, instantiated and replicated in a stack of strips, one strip for each controllable ship<br/>
 <br/>
 </body></html>

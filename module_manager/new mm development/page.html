@@ -42,155 +42,11 @@
  &nbsp; &nbsp;- Item Factory, Inventory, Items<br/>
  &nbsp; &nbsp;- Client, Character, Ship, Modules<br/>
  &nbsp; &nbsp;- System, Bubbles, Entities<br/>
+ &nbsp; &nbsp;- API Server and services<br/>
  &nbsp; &nbsp;- <br/>
 <br/>
 <br/>
 *** TODO ***<br/>
-* DATA ENTRY: Fill dgmEffectsInfo and dgmEffectsActions tables with some initial passive Modules<br/>
-- Modules<br/>
- &nbsp; &nbsp;PASSIVE MODULES:<br/>
- &nbsp; &nbsp;- * Adaptive Nano Plating I<br/>
- &nbsp; &nbsp;- * Cap Recharger I<br/>
- &nbsp; &nbsp;- * Power Diagnostics I<br/>
- &nbsp; &nbsp;- * Gyrostabilizer I<br/>
- &nbsp; &nbsp;- * Shield Power Relay I<br/>
- &nbsp; &nbsp;- * Tracking Enhancer I<br/>
- &nbsp; &nbsp;ACTIVE MODULES:<br/>
- &nbsp; &nbsp;- * Armor Thermic Hardener I - need to add capacitor need consumption effect to wiki table<br/>
- &nbsp; &nbsp;- * 10MN Microwarpdrive I - need to add capacitor need consumption effect to wiki table<br/>
- &nbsp; &nbsp;- * Medium Shield Booster I<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;-- PROBLEM: one effectID may affect more than one attribute, so, how do we fill data for the<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dgmEffectsActions table where one attribute is modify-maintained and the other attribute<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; is modify-consume for each cycle of an Active module? &nbsp;this would not apply to passives.<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;-- SOLUTION: move the field(s) describing maintain/consume behavior of effect to the<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; dgmEffectsInfo table so that they are tied to each target attribute to be modified<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; by an effect instead of being tied to the effect itself<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE update table sql file<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE update all wiki documentation<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE update MEffect class members and methods<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE update the appropriate classes<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE make changes to effects info list wiki page<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; - DONE change effect loading to not print another error, but to report the # of failures on<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;import in only one line in the server log, using error level<br/>
- &nbsp; &nbsp;- * Medium Energy Neutralizer I<br/>
- &nbsp; &nbsp;- * 425mm Autocannon I / 720mm Artillery I<br/>
- &nbsp; &nbsp;- * ECM - Multispectral Jammer I<br/>
- &nbsp; &nbsp;- * Heavy Beam Laser I / Heavy Pulse Laser I<br/>
- &nbsp; &nbsp;- * 250mm Railgun I / Heavy Neutron Blaster I<br/>
-<br/>
-* Charges:<br/>
- &nbsp; &nbsp;- * EMP M<br/>
- &nbsp; &nbsp;- * Multifrequency M<br/>
- &nbsp; &nbsp;- * Antimatter Charge M<br/>
-<br/>
-<br/>
-*** Dogma Ship Bonus Modifier tables:<br/>
-* Fields:<br/>
- &nbsp;- effectID<br/>
- &nbsp;- attributeSkillID &nbsp;- the attributeID on the ship indicating the skillID used by this bonus<br/>
- &nbsp;- sourceAttributeID<br/>
- &nbsp;- targetAttributeID<br/>
- &nbsp;- calculationTypeID<br/>
- &nbsp;- reverseCalculationTypeID<br/>
- &nbsp;- effectAppliedTo<br/>
- &nbsp;- targetEquipmentType<br/>
- &nbsp;- targetGroupIDs<br/>
- &nbsp;- targetChargeSize<br/>
-<br/>
-<br/>
-WIKI: document the known deviations from CCP standard operating procedures for aall areas<br/>
-- Modules:<br/>
-<br/>
-<br/>
-* DATA ENTRY: Fill dgmShipBonusModifiers table with some initial Ships<br/>
-- Ships<br/>
- &nbsp; &nbsp;- *F: Punisher<br/>
- &nbsp; &nbsp;- *F: Merlin<br/>
- &nbsp; &nbsp;- *F: Imicus<br/>
- &nbsp; &nbsp;- *F: Probe<br/>
- &nbsp; &nbsp;- F: Rifter<br/>
- &nbsp; &nbsp;- F: Executioner<br/>
- &nbsp; &nbsp;- F: Incursus<br/>
- &nbsp; &nbsp;- F: Condor<br/>
- &nbsp; &nbsp;- D: Coercer<br/>
- &nbsp; &nbsp;- D: Cormorant<br/>
- &nbsp; &nbsp;- D: Catalyst<br/>
- &nbsp; &nbsp;- D: Thrasher<br/>
- &nbsp; &nbsp;- * C: Stabber<br/>
- &nbsp; &nbsp;- * C: Moa<br/>
- &nbsp; &nbsp;- * C: Maller<br/>
- &nbsp; &nbsp;- * C: Exequror<br/>
- &nbsp; &nbsp;- T2 AF: Wolf<br/>
- &nbsp; &nbsp;- T2 AF: Harpy<br/>
- &nbsp; &nbsp;- T2 AF: Ishkur<br/>
- &nbsp; &nbsp;- T2 AF: Vengeance<br/>
- &nbsp; &nbsp;- *T2 HAC: Vagabond<br/>
- &nbsp; &nbsp;- *T2 HAC: Muninn<br/>
- &nbsp; &nbsp;- T2 HAC: Cerberus<br/>
- &nbsp; &nbsp;- T2 HAC: Zealot<br/>
-d &nbsp; &nbsp;- C: Cynabal<br/>
-d &nbsp; &nbsp;- C: Ashimmu<br/>
- &nbsp; &nbsp;- BC: Prophecy<br/>
-d &nbsp; &nbsp;- BC: Hurricane<br/>
-d &nbsp; &nbsp;- BC: Drake<br/>
- &nbsp; &nbsp;- BC: Brutix<br/>
- &nbsp; &nbsp;- Tier 3 BC: Oracle<br/>
- &nbsp; &nbsp;- Tier 3 BC: Naga<br/>
- &nbsp; &nbsp;- Tier 3 BC: Talos<br/>
- &nbsp; &nbsp;- Tier 3 BC: Tornado<br/>
- &nbsp; &nbsp;- BS: Maelstrom<br/>
- &nbsp; &nbsp;- BS: Dominix<br/>
- &nbsp; &nbsp;- BS: Megathron<br/>
- &nbsp; &nbsp;- BS: Raven<br/>
- &nbsp; &nbsp;- DIC: Heretic<br/>
- &nbsp; &nbsp;- COVOPS: Anathema<br/>
- &nbsp; &nbsp;- INT: Malediction<br/>
-d &nbsp; &nbsp;- LOGI: Scimitar<br/>
- &nbsp; &nbsp;- SB: Nemesis<br/>
-d &nbsp; &nbsp;- HDIC: Broadsword<br/>
- &nbsp; &nbsp;- BLACKOPS: Widow<br/>
-<br/>
-*** Dogma Skill Bonus Modifier tables:<br/>
-* Fields:<br/>
- &nbsp;- skillID<br/>
- &nbsp;- effectID<br/>
- &nbsp;- sourceAttributeID<br/>
- &nbsp;- targetAttributeID<br/>
- &nbsp;- calculationTypeID<br/>
- &nbsp;- reverseCalculationTypeID<br/>
- &nbsp;- effectAppliedTo<br/>
- &nbsp;- targetEquipmentType<br/>
- &nbsp;- targetGroupIDs<br/>
- &nbsp;- targetChargeSize<br/>
-<br/>
-<br/>
-* DATA ENTRY: Fill dgmSkillBonusModifiers table with some initial Skills<br/>
-- Skills<br/>
- &nbsp; &nbsp;- *some gunnery skills: Gunnery, Sharpshooter, Rapid Firing, Surgical Strike, Controlled Bursts,<br/>
- &nbsp; &nbsp; &nbsp; Trajectory Analysis, Weapon Upgrades<br/>
- &nbsp; &nbsp;- *Energy Systems Operations<br/>
- &nbsp; &nbsp;- *Energy Management<br/>
- &nbsp; &nbsp;- *Energy Grid Upgrades<br/>
- &nbsp; &nbsp;- *Engineering<br/>
- &nbsp; &nbsp;- *Electronics<br/>
- &nbsp; &nbsp;- *Electronics Upgrades<br/>
- &nbsp; &nbsp;- *Weapon Upgrades<br/>
- &nbsp; &nbsp;- *Long Range Targeting<br/>
- &nbsp; &nbsp;- *Multitasking<br/>
- &nbsp; &nbsp;- *Signature Analysis<br/>
- &nbsp; &nbsp;- *Navigation<br/>
- &nbsp; &nbsp;- *Warp Drive Operation<br/>
- &nbsp; &nbsp;- *Evasive Maneuvering<br/>
- &nbsp; &nbsp;- *Spaceship Command<br/>
- &nbsp; &nbsp;- *Mechanics<br/>
- &nbsp; &nbsp;- *Hull Upgrades<br/>
- &nbsp; &nbsp;- *Shield Management<br/>
-<br/>
-<br/>
-* DATA ENTRY: Fill dgmImplantBonusModifiers table with some initial Implants<br/>
-- Implants<br/>
-<br/>
-<br/>
 * FORGET THE WIKI, Oza is doing this now at my request on his Gork Admin site:<br/>
  &nbsp; &nbsp;- web.gork.levelbelow.net<br/>
  &nbsp; &nbsp;- we can import the current CCP dumps into mysql running our wiki.....so if we did,<br/>
@@ -201,35 +57,64 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
  &nbsp; &nbsp; &nbsp; &nbsp;- should this be done using EVEmu Web Portal intead?<br/>
 <br/>
 <br/>
-************************************<br/>
-* TEST / BUG FIX - POST-DATA ENTRY:<br/>
-************************************<br/>
-* DONE - UPDATE ALL AREAS where Missing attributes are added to attribute maps of Ship, NPC, etc class objects to add those same attributes with their default values to the Default Attribute Map<br/>
- &nbsp; &nbsp;- PROBLEM: Default attribute map does not get loaded fromj anywhere, nor are its contnts stored<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- SOLUTION:<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- create new table 'entity_default_attributes' which will hold item default attributes<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- change AttributeMap to take another parameter in another constructor that indicates<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; it should use either regular or default entity attributes table for load/store/query ops<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;- SetAttribute() methods should take optional parameter at end of param list that indicates<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; an override to shadow copy the attribute creation/modify operation to the default map<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; as welll as the regular map<br/>
+* DONE - WRITE Python script that queries eve-central.com for average prices of all items then update DB<br/>
+ &nbsp; &nbsp;- DONE - do http get to get xml for typeid<br/>
+ &nbsp; &nbsp;- DONE - parse xml to get avg buy and sell price<br/>
+ &nbsp; &nbsp;- DONE - create mysql query that updates typeID in invTypes table basePrice field<br/>
+ &nbsp; &nbsp;- GO FURTHER<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- query sell and buy orders for each system for each item and build sql that can be used to seed market or periodically update those orders thus mimicing eve live's economy fluctuations<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- implement functions to query eve-central for regional prices and galaxy wide avg prices and update evemu market_orders table with that pricing data per region or galaxy<br/>
 <br/>
-* DONE - IMPLEMENT GetDefaultAttribute() &nbsp;methods on InventoryItem, Ship, etc classes<br/>
+<br/>
+* DONE - FIX the fact that Module Online/Offline state is somehow not stored/loaded from the database<br/>
+ &nbsp; &nbsp;- first check to see if a log off or server restart is needed to reproduce this problem<br/>
+ &nbsp; &nbsp;- whenever i log off with modules fitted and onlined, then log back in, the modules are offline<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp;- check to see if onlining is working correctly i the server as well as database and packets to client<br/>
+<br/>
+<br/>
+* MAKE wiki accts for vlad and rivz then inquire of cjcaru and flowflow if they can test and report then do some wiki documentation as a way to start involvement in the project<br/>
+- new person procedure<br/>
+ &nbsp; &nbsp;1. coder? then get them studying codebase and step through, follow code, read wiki<br/>
+ &nbsp; &nbsp;2. tester? then have them go through 'server status' to find missing items/features, what's broken<br/>
+ &nbsp; &nbsp;3. documentation of server code and design on wiki<br/>
+ &nbsp; &nbsp;4. come alongside senior dev/tester as apprentice, working on tasks assigned, if agreeable<br/>
+ &nbsp; &nbsp;5. if they show particular and exceptional skill, productivity, intelligence and initiative, the n<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; petition a vote amongst team veterans to elevate member to the senior team with all due<br/>
+ &nbsp; &nbsp; &nbsp; &nbsp; right and priveleges to admin access<br/>
+<br/>
 <br/>
 * MAKE STUBS for ALL MISSING server calls new in Crucible<br/>
+----- have the testers survey functions to find the missing services and calls<br/>
+ &nbsp;* ModuleManager<br/>
  &nbsp; &nbsp;- activate<br/>
  &nbsp; &nbsp;- oveload<br/>
  &nbsp; &nbsp;- load charge<br/>
  &nbsp; &nbsp;- deactivate<br/>
  &nbsp; &nbsp;- unload charge<br/>
+ &nbsp; &nbsp;- others???<br/>
 <br/>
-* DONE - INVESTIGATE supposed attributes not being saved to the database for some or all objects<br/>
- &nbsp; &nbsp;- InventoryItem::SaveItem() method should be being called by all derived objects - CHECK<br/>
- &nbsp; &nbsp; &nbsp; on Asteroid, Skill, Ship, Module, Charge, Character, Drone, Blueprint<br/>
- &nbsp; &nbsp;- Interesting thought is that each item will HAVE to derive from IventoryItem to get their attribs<br/>
- &nbsp; &nbsp; &nbsp; saved to DB because the derived object is responsible for invoking SaveItem()<br/>
- &nbsp; &nbsp;-------- each class that derives from InventoryItem is responsible for invoking SaveItem() on<br/>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; its own terms be they destructor, timer, etc<br/>
+<br/>
+* IMPLEMENT the Basic and HTML non-singleton log classes a bit more to be usable by other systems in the code base<br/>
+ &nbsp;- these will be handy for troubleshooting and debugging individual systems and instances<br/>
+<br/>
+<br/>
+* MAKE ALL module groups fittable by replacing return NULL with new module object<br/>
+<br/>
+<br/>
+* MAKE ALL stub calls identified and created in previous efforts throw a client error exception as GM command functions do with illegal params<br/>
+ &nbsp; &nbsp;- this should be default behavior from now on so it becomes immediately apparent to normal users what is broken or unimplemented and that the dev team knows about it<br/>
+<br/>
+<br/>
+* MAKE A SYSTEM OBJECT that can be queried for system-wide info and possibly be used to write to the system singleton log among other actions<br/>
+ &nbsp; &nbsp;- queryable system file paths (logs, scripts, config files, etc)<br/>
+ &nbsp; &nbsp;- queryable configuration file information (eve-server.xml settings, etc)<br/>
+<br/>
+<br/>
+* EXPAND use of logging using the non-singleton log class<br/>
+ &nbsp; &nbsp;- create a log object for specificallly recording the packet traffic of the server (RX and TX) in one file with timestamps for all sent/received packets and have all packets 'pretty printed' a la believeMONITOR<br/>
+ &nbsp; &nbsp;- create another log only for destiny actions for EACH solar system<br/>
+ &nbsp; &nbsp;- create another log only for ModuleManager, only one for entire server at this time, but consider how logging could be plumbed for independent logging of destiny actions within each bubble or solar system; for each bubble would be hard since bubbles only have number IDs and are dynamically created/destroyed, so perhaps log destiny per solar system<br/>
+<br/>
 <br/>
 * ADAPT EVEHQ Resource file Effects.csv for our uses in database tables<br/>
  &nbsp; &nbsp;- still requires link between effectID and these rows in that file, each line should have effectID<br/>
@@ -237,26 +122,14 @@ d &nbsp; &nbsp;- HDIC: Broadsword<br/>
 * ADAPT EVEHQ Resource file ShipBonuses.csv for our uses in database tables<br/>
 * ADAPT EVEHQ Resource file SkillBonuses.csv for our uses in database tables<br/>
 * ADAPT EVEHQ Resource file Subsytems.csv for our uses in database tables<br/>
-* ADAPT EVEHQ Resource file Implants.csv for our uses in database tables<br/>
+* ADAPT EVEHQ Resource file Rigs.csv(?) for our uses in database tables<br/>
 * ADAPT EVEHQ Resource file ???.csv for our uses in database tables<br/>
 <br/>
 * CHANGE Modue State ENUM values to match those in EVEHQ<br/>
 <br/>
 * CHANGE Effect / Bonus Calculation Type ENUM values to match EVEHQ<br/>
 <br/>
-* MAKE WORK flagAutoFit functionality<br/>
- &nbsp; &nbsp;- study server call that is invoked upon attempting to auto-fit a module<br/>
- &nbsp; &nbsp;- need method to call on Ship -&gt; ModuleManager -&gt; ModuleContainer to find an unused slot<br/>
- &nbsp; &nbsp; &nbsp; on the same bank as the module would be fitted to<br/>
- &nbsp; &nbsp; &nbsp; MUST query module effects for slot ID: loPowr, medPower, or hiPower<br/>
- &nbsp; &nbsp;- with new flag value, begin normal fitting procedures<br/>
- &nbsp; &nbsp;- IF there are NO available slots in the desired bank, then return error to client<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- how do we do that?<br/>
-<br/>
-* FIX the fact that Module Online/Offline state is somehow not stored/loaded from the database<br/>
- &nbsp; &nbsp;- first check to see if a log off or server restart is needed to reproduce this problem<br/>
- &nbsp; &nbsp;- whenever i log off with modules fitted and onlined, then log back in, the modules are offline<br/>
- &nbsp; &nbsp; &nbsp; &nbsp;- check to see if onlining is working correctly i the server as well as database and packets to client<br/>
+* MAKE AciveModule inherit from Inventory class in order to allow transfer of Charges<br/>
 <br/>
 * EFT STUDY OF ATTRIBUTE CHANGES ACROSS ALL POSSIBLE SOURCES AND CONFIGURATIONS:<br/>
  &nbsp; &nbsp;- module modifiers, ship bonuses, skill bonuses, and implant bonuses are all accumulated<br/>
